@@ -40,7 +40,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/entry') ||
     request.nextUrl.pathname.startsWith('/print') ||
-    request.nextUrl.pathname.startsWith('/students')
+    request.nextUrl.pathname.startsWith('/students') ||
+    request.nextUrl.pathname.startsWith('/admin')
   ) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url));

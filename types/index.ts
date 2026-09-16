@@ -69,3 +69,11 @@ export interface WeekConfig {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface GradeToken {
+  id: string;
+  grade: string;
+  token: string;
+  created_at: string;
+  updated_at: string;
+}

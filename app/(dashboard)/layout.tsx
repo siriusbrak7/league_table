@@ -52,6 +52,12 @@ export default async function DashboardLayout({
               >
                 Students
               </Link>
+              <Link
+                href="/admin/tokens"
+                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Student Links
+              </Link>
               <form
                 action={async () => {
                   'use server';
