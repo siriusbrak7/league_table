@@ -11,8 +11,8 @@ export interface GradeProcessedData {
   students: Student[];
   rankedAcademic: StudentAcademicData[];
   rankedBehavior: StudentBehaviorData[];
-  academicRanks: Record<string, number>;
-  behaviorRanks: Record<string, number>;
+  academicRanks: Record<string, number | null>;
+  behaviorRanks: Record<string, number | null>;
   overallPercentages: Array<{
     studentId: string;
     academic: number;
@@ -52,16 +52,21 @@ export function processGradeData(
       });
     }
 
+    const hasData = weeklyScores.some(
+      (w) => w.test !== undefined || w.classwork !== undefined || w.homework !== undefined
+    );
+
     return {
       student,
       weeklyScores,
       weightedPercentage: calculateOverallPercentage(weeklyScores),
-      rank: 0,
+      rank: null,
+      hasData,
     };
   });
 
   const rankedAcademic = calculateAcademicRanks(academicData);
-  const academicRanks: Record<string, number> = {};
+  const academicRanks: Record<string, number | null> = {};
   rankedAcademic.forEach((item) => {
     academicRanks[item.student.id] = item.rank;
   });
@@ -70,17 +75,19 @@ export function processGradeData(
   const behaviorData: StudentBehaviorData[] = gradeStudents.map((student) => {
     const studentScores = behaviorScores.filter((s) => s.student_id === student.id);
     const weeklyScores = studentScores.map((s) => ({ week: s.week, score: s.score }));
+    const hasData = weeklyScores.length > 0;
 
     return {
       student,
       weeklyScores,
       average: calculateBehaviorAverage(weeklyScores),
-      rank: 0,
+      rank: null,
+      hasData,
     };
   });
 
   const rankedBehavior = calculateBehaviorRanks(behaviorData);
-  const behaviorRanks: Record<string, number> = {};
+  const behaviorRanks: Record<string, number | null> = {};
   rankedBehavior.forEach((item) => {
     behaviorRanks[item.student.id] = item.rank;
   });
@@ -90,17 +97,12 @@ export function processGradeData(
     const acData = academicData.find((a) => a.student.id === student.id)!;
     const bhData = behaviorData.find((b) => b.student.id === student.id)!;
 
-    const hasAcademicData = acData.weeklyScores.some(
-      (w) => w.test !== undefined || w.classwork !== undefined || w.homework !== undefined
-    );
-    const hasBehaviorData = bhData.weeklyScores.length > 0;
-
     return {
       studentId: student.id,
       academic: acData.weightedPercentage,
       behavior: bhData.average,
-      hasAcademicData,
-      hasBehaviorData,
+      hasAcademicData: acData.hasData,
+      hasBehaviorData: bhData.hasData,
     };
   });
 

@@ -84,7 +84,7 @@ export function calculateOverallPercentage(
     return 0;
   }
 
-  // Average of all weekly percentages
+  // Average of all weekly percentages with academic data
   const sum = weeklyPercentages.reduce((acc, curr) => acc + curr, 0);
   return sum / weeklyPercentages.length;
 }
@@ -105,14 +105,18 @@ export function calculateBehaviorAverage(
 }
 
 // Calculate academic ranks with standard competition tie handling (1, 1, 3...)
+// Students without data are excluded from numeric ranking (rank = null) and sorted to the bottom.
 export function calculateAcademicRanks(
   students: StudentAcademicData[]
 ): StudentAcademicData[] {
-  const sorted = [...students].sort((a, b) => b.weightedPercentage - a.weightedPercentage);
-  
+  const withData = students.filter((s) => s.hasData);
+  const withoutData = students.filter((s) => !s.hasData);
+
+  const sortedWithData = [...withData].sort((a, b) => b.weightedPercentage - a.weightedPercentage);
+
   let currentRank = 1;
-  return sorted.map((student, index) => {
-    if (index > 0 && Math.abs(student.weightedPercentage - sorted[index - 1].weightedPercentage) < 0.001) {
+  const rankedWithData = sortedWithData.map((student, index) => {
+    if (index > 0 && Math.abs(student.weightedPercentage - sortedWithData[index - 1].weightedPercentage) < 0.001) {
       // Tied with previous student
       return {
         ...student,
@@ -125,17 +129,28 @@ export function calculateAcademicRanks(
       rank: currentRank,
     };
   });
+
+  const unrankedWithoutData = withoutData.map((student) => ({
+    ...student,
+    rank: null,
+  }));
+
+  return [...rankedWithData, ...unrankedWithoutData];
 }
 
 // Calculate behavior ranks with standard competition tie handling (1, 1, 3...)
+// Students without data are excluded from numeric ranking (rank = null) and sorted to the bottom.
 export function calculateBehaviorRanks(
   students: StudentBehaviorData[]
 ): StudentBehaviorData[] {
-  const sorted = [...students].sort((a, b) => b.average - a.average);
-  
+  const withData = students.filter((s) => s.hasData);
+  const withoutData = students.filter((s) => !s.hasData);
+
+  const sortedWithData = [...withData].sort((a, b) => b.average - a.average);
+
   let currentRank = 1;
-  return sorted.map((student, index) => {
-    if (index > 0 && Math.abs(student.average - sorted[index - 1].average) < 0.001) {
+  const rankedWithData = sortedWithData.map((student, index) => {
+    if (index > 0 && Math.abs(student.average - sortedWithData[index - 1].average) < 0.001) {
       // Tied with previous student
       return {
         ...student,
@@ -148,4 +163,11 @@ export function calculateBehaviorRanks(
       rank: currentRank,
     };
   });
+
+  const unrankedWithoutData = withoutData.map((student) => ({
+    ...student,
+    rank: null,
+  }));
+
+  return [...rankedWithData, ...unrankedWithoutData];
 }

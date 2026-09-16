@@ -44,7 +44,8 @@ export interface StudentAcademicData {
     homework?: { score: number; total: number };
   }[];
   weightedPercentage: number;
-  rank: number;
+  rank: number | null;
+  hasData: boolean;
 }
 
 export interface StudentBehaviorData {
@@ -54,5 +55,17 @@ export interface StudentBehaviorData {
     score: number;
   }[];
   average: number;
-  rank: number;
+  rank: number | null;
+  hasData: boolean;
+}
+
+export interface WeekConfig {
+  id: string;
+  term: string;
+  year: number;
+  week: number;
+  category: 'test' | 'classwork' | 'homework';
+  total: number;
+  created_at?: string;
+  updated_at?: string;
 }
