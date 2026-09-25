@@ -357,7 +357,9 @@ export function EntryForm({ students }: EntryFormProps) {
         year: number;
       }[] = [];
 
-      for (const [studentId, studentScores] of Object.entries(scores)) {
+      for (const student of filteredStudents) {
+        const studentId = student.id;
+        const studentScores = scores[studentId];
         if (!studentScores) continue;
 
         // Test score if category is enabled
