@@ -64,6 +64,7 @@ export interface WeekConfig {
   term: string;
   year: number;
   week: number;
+  grade: string;
   category: 'test' | 'classwork' | 'homework';
   total: number;
   created_at?: string;

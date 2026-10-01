@@ -6,9 +6,9 @@ import { CURRENT_TERM, CURRENT_YEAR, GRADES } from '@/lib/config';
 import type { Student, WeekConfig } from '@/types';
 
 export interface EntryTotals {
-  test: number;
-  classwork: number;
-  homework: number;
+  test: number | null;
+  classwork: number | null;
+  homework: number | null;
 }
 
 interface StudentWeekScores {
@@ -28,12 +28,6 @@ interface EntryFormProps {
   students: Student[];
 }
 
-const DEFAULT_TOTALS: EntryTotals = {
-  test: 15,
-  classwork: 10,
-  homework: 10,
-};
-
 export function EntryForm({ students }: EntryFormProps) {
   const [week, setWeek] = useState<number>(1);
   const [selectedGrade, setSelectedGrade] = useState<string>('All');
@@ -47,10 +41,11 @@ export function EntryForm({ students }: EntryFormProps) {
   });
 
   // Totals for enabled categories
-  const [totals, setTotals] = useState<EntryTotals>(DEFAULT_TOTALS);
+  const [totals, setTotals] = useState<EntryTotals>({ test: null, classwork: null, homework: null });
 
   // Scores map: studentId -> { test, classwork, homework, behavior }
   const [scores, setScores] = useState<Record<string, StudentWeekScores>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -143,7 +138,7 @@ export function EntryForm({ students }: EntryFormProps) {
     return map;
   }, [students]);
 
-  // Load week_config and existing scores whenever selected week changes
+  // Load grade-specific configuration and existing scores whenever the week or grade changes.
   useEffect(() => {
     let isCancelled = false;
 
@@ -151,15 +146,11 @@ export function EntryForm({ students }: EntryFormProps) {
       if (students.length === 0) return;
       setLoadingExisting(true);
       setError(null);
+      setEnabledCategories({ test: false, classwork: false, homework: false });
+      setTotals({ test: null, classwork: null, homework: null });
 
       try {
-        const [configRes, academicRes, behaviorRes] = await Promise.all([
-          supabase
-            .from('week_config')
-            .select('*')
-            .eq('term', CURRENT_TERM)
-            .eq('year', CURRENT_YEAR)
-            .eq('week', week),
+        const [academicRes, behaviorRes] = await Promise.all([
           supabase
             .from('academic_scores')
             .select('*')
@@ -174,64 +165,42 @@ export function EntryForm({ students }: EntryFormProps) {
             .eq('week', week),
         ]);
 
-        if (configRes.error) throw configRes.error;
         if (academicRes.error) throw academicRes.error;
         if (behaviorRes.error) throw behaviorRes.error;
 
+        let configRows: WeekConfig[] = [];
+        if (selectedGrade !== 'All') {
+          const configRes = await supabase
+            .from('week_config')
+            .select('*')
+            .eq('term', CURRENT_TERM)
+            .eq('year', CURRENT_YEAR)
+            .eq('week', week)
+            .eq('grade', selectedGrade);
+          if (configRes.error) throw configRes.error;
+          configRows = (configRes.data as WeekConfig[]) || [];
+        }
+
         if (!isCancelled) {
-          const configRows = (configRes.data as WeekConfig[]) || [];
           const academicRows = academicRes.data || [];
           const behaviorRows = behaviorRes.data || [];
 
-          // Determine enabled categories strictly by presence of week_config row OR existing student score in that category
-          const hasTestConfig = configRows.some((c) => c.category === 'test');
-          const hasTestScore = academicRows.some((a) => a.category === 'test');
-          const hasTest = hasTestConfig || hasTestScore;
-
-          const hasClassworkConfig = configRows.some((c) => c.category === 'classwork');
-          const hasClassworkScore = academicRows.some((a) => a.category === 'classwork');
-          const hasClasswork = hasClassworkConfig || hasClassworkScore;
-
-          const hasHomeworkConfig = configRows.some((c) => c.category === 'homework');
-          const hasHomeworkScore = academicRows.some((a) => a.category === 'homework');
-          const hasHomework = hasHomeworkConfig || hasHomeworkScore;
-
-          const hasAnyConfigOrData = configRows.length > 0 || academicRows.length > 0;
-
-          if (hasAnyConfigOrData) {
+          if (selectedGrade !== 'All') {
             setEnabledCategories({
-              test: hasTest,
-              classwork: hasClasswork,
-              homework: hasHomework,
-            });
-          } else {
-            // Fresh week with no config or scores — leave unchecked/disabled by default
-            setEnabledCategories({
-              test: false,
-              classwork: false,
-              homework: false,
+              test: configRows.some((c) => c.category === 'test'),
+              classwork: configRows.some((c) => c.category === 'classwork'),
+              homework: configRows.some((c) => c.category === 'homework'),
             });
           }
 
-          // Extract totals from week_config or academic_scores or fallback default
+          // Totals come only from the selected grade's week_config rows.
           const testConfig = configRows.find((c) => c.category === 'test');
-          const testScoreRow = academicRows.find((a) => a.category === 'test');
-          const testTotal = testConfig?.total ?? testScoreRow?.total ?? DEFAULT_TOTALS.test;
-
           const classworkConfig = configRows.find((c) => c.category === 'classwork');
-          const classworkScoreRow = academicRows.find((a) => a.category === 'classwork');
-          const classworkTotal =
-            classworkConfig?.total ?? classworkScoreRow?.total ?? DEFAULT_TOTALS.classwork;
-
           const homeworkConfig = configRows.find((c) => c.category === 'homework');
-          const homeworkScoreRow = academicRows.find((a) => a.category === 'homework');
-          const homeworkTotal =
-            homeworkConfig?.total ?? homeworkScoreRow?.total ?? DEFAULT_TOTALS.homework;
-
           setTotals({
-            test: testTotal,
-            classwork: classworkTotal,
-            homework: homeworkTotal,
+            test: testConfig?.total ?? null,
+            classwork: classworkConfig?.total ?? null,
+            homework: homeworkConfig?.total ?? null,
           });
 
           // Map student scores
@@ -271,10 +240,25 @@ export function EntryForm({ students }: EntryFormProps) {
     return () => {
       isCancelled = true;
     };
-  }, [students, week, supabase]);
+  }, [students, week, selectedGrade, supabase]);
+
+  const handleGradeChange = (nextGrade: string) => {
+    if (nextGrade === selectedGrade) return;
+    if (
+      hasUnsavedChanges &&
+      !window.confirm('You have unsaved changes. Discard them and switch grades?')
+    ) {
+      return;
+    }
+
+    setScores({});
+    setHasUnsavedChanges(false);
+    setSelectedGrade(nextGrade);
+  };
 
   const handleScoreChange = (studentId: string, field: keyof StudentWeekScores, valStr: string) => {
     const val = valStr === '' ? undefined : Number(valStr);
+    setHasUnsavedChanges(true);
     setScores((prev) => ({
       ...prev,
       [studentId]: {
@@ -285,21 +269,30 @@ export function EntryForm({ students }: EntryFormProps) {
   };
 
   const validateAndSubmit = async () => {
+    if (selectedGrade === 'All') {
+      setError('Select a specific grade to save scores.');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       setSuccess(false);
 
       // Validate category totals
-      if (enabledCategories.test && totals.test < 1) {
-        throw new Error('Test total must be at least 1');
+      if (enabledCategories.test && (totals.test === null || totals.test < 1)) {
+        throw new Error('Set total for Test before saving.');
       }
-      if (enabledCategories.classwork && totals.classwork < 1) {
-        throw new Error('Classwork total must be at least 1');
+      if (enabledCategories.classwork && (totals.classwork === null || totals.classwork < 1)) {
+        throw new Error('Set total for Classwork before saving.');
       }
-      if (enabledCategories.homework && totals.homework < 1) {
-        throw new Error('Homework total must be at least 1');
+      if (enabledCategories.homework && (totals.homework === null || totals.homework < 1)) {
+        throw new Error('Set total for Homework before saving.');
       }
+
+      const testTotal = totals.test ?? 0;
+      const classworkTotal = totals.classwork ?? 0;
+      const homeworkTotal = totals.homework ?? 0;
 
       // 1. Prepare week_config upserts for enabled categories
       const weekConfigUpserts = [];
@@ -308,8 +301,9 @@ export function EntryForm({ students }: EntryFormProps) {
           term: CURRENT_TERM,
           year: CURRENT_YEAR,
           week,
+          grade: selectedGrade,
           category: 'test',
-          total: totals.test,
+          total: testTotal,
         });
       }
       if (enabledCategories.classwork) {
@@ -317,8 +311,9 @@ export function EntryForm({ students }: EntryFormProps) {
           term: CURRENT_TERM,
           year: CURRENT_YEAR,
           week,
+          grade: selectedGrade,
           category: 'classwork',
-          total: totals.classwork,
+          total: classworkTotal,
         });
       }
       if (enabledCategories.homework) {
@@ -326,14 +321,15 @@ export function EntryForm({ students }: EntryFormProps) {
           term: CURRENT_TERM,
           year: CURRENT_YEAR,
           week,
+          grade: selectedGrade,
           category: 'homework',
-          total: totals.homework,
+          total: homeworkTotal,
         });
       }
 
       if (weekConfigUpserts.length > 0) {
         const { error: configError } = await supabase.from('week_config').upsert(weekConfigUpserts, {
-          onConflict: 'term,year,week,category',
+          onConflict: 'term,year,week,grade,category',
         });
         if (configError) throw configError;
       }
@@ -364,15 +360,15 @@ export function EntryForm({ students }: EntryFormProps) {
 
         // Test score if category is enabled
         if (enabledCategories.test && studentScores.test !== undefined && !isNaN(studentScores.test)) {
-          if (studentScores.test < 0 || studentScores.test > totals.test) {
-            throw new Error(`Test scores must be between 0 and ${totals.test}`);
+          if (studentScores.test < 0 || studentScores.test > testTotal) {
+            throw new Error(`Test scores must be between 0 and ${testTotal}`);
           }
           academicUpserts.push({
             student_id: studentId,
             week,
             category: 'test',
             score: studentScores.test,
-            total: totals.test,
+            total: testTotal,
             term: CURRENT_TERM,
             year: CURRENT_YEAR,
           });
@@ -384,15 +380,15 @@ export function EntryForm({ students }: EntryFormProps) {
           studentScores.classwork !== undefined &&
           !isNaN(studentScores.classwork)
         ) {
-          if (studentScores.classwork < 0 || studentScores.classwork > totals.classwork) {
-            throw new Error(`Classwork scores must be between 0 and ${totals.classwork}`);
+          if (studentScores.classwork < 0 || studentScores.classwork > classworkTotal) {
+            throw new Error(`Classwork scores must be between 0 and ${classworkTotal}`);
           }
           academicUpserts.push({
             student_id: studentId,
             week,
             category: 'classwork',
             score: studentScores.classwork,
-            total: totals.classwork,
+            total: classworkTotal,
             term: CURRENT_TERM,
             year: CURRENT_YEAR,
           });
@@ -404,15 +400,15 @@ export function EntryForm({ students }: EntryFormProps) {
           studentScores.homework !== undefined &&
           !isNaN(studentScores.homework)
         ) {
-          if (studentScores.homework < 0 || studentScores.homework > totals.homework) {
-            throw new Error(`Homework scores must be between 0 and ${totals.homework}`);
+          if (studentScores.homework < 0 || studentScores.homework > homeworkTotal) {
+            throw new Error(`Homework scores must be between 0 and ${homeworkTotal}`);
           }
           academicUpserts.push({
             student_id: studentId,
             week,
             category: 'homework',
             score: studentScores.homework,
-            total: totals.homework,
+            total: homeworkTotal,
             term: CURRENT_TERM,
             year: CURRENT_YEAR,
           });
@@ -456,6 +452,7 @@ export function EntryForm({ students }: EntryFormProps) {
       }
 
       setSuccess(true);
+      setHasUnsavedChanges(false);
       await refreshWeeksWithData();
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -469,21 +466,25 @@ export function EntryForm({ students }: EntryFormProps) {
     const studentScore = scores[student.id] || {};
 
     const isTestExceeded =
+      selectedGrade !== 'All' &&
       enabledCategories.test &&
       studentScore.test !== undefined &&
-      (studentScore.test < 0 || studentScore.test > totals.test);
+      (studentScore.test < 0 || studentScore.test > (totals.test ?? 0));
 
     const isClassworkExceeded =
+      selectedGrade !== 'All' &&
       enabledCategories.classwork &&
       studentScore.classwork !== undefined &&
-      (studentScore.classwork < 0 || studentScore.classwork > totals.classwork);
+      (studentScore.classwork < 0 || studentScore.classwork > (totals.classwork ?? 0));
 
     const isHomeworkExceeded =
+      selectedGrade !== 'All' &&
       enabledCategories.homework &&
       studentScore.homework !== undefined &&
-      (studentScore.homework < 0 || studentScore.homework > totals.homework);
+      (studentScore.homework < 0 || studentScore.homework > (totals.homework ?? 0));
 
     const isBehaviorExceeded =
+      selectedGrade !== 'All' &&
       studentScore.behavior !== undefined &&
       (studentScore.behavior < 0 || studentScore.behavior > 100);
 
@@ -497,67 +498,76 @@ export function EntryForm({ students }: EntryFormProps) {
         </td>
 
         {/* Test Score */}
-        {enabledCategories.test && (
+        {(selectedGrade === 'All' || enabledCategories.test) && (
           <td className="px-3 py-3 whitespace-nowrap">
             <div className="flex items-center">
               <input
                 type="number"
                 min="0"
-                max={totals.test}
+                max={totals.test ?? undefined}
                 placeholder="0"
                 value={studentScore.test !== undefined ? studentScore.test : ''}
                 onChange={(e) => handleScoreChange(student.id, 'test', e.target.value)}
+                disabled={selectedGrade === 'All'}
                 className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
                   isTestExceeded
                     ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-400 bg-white focus:ring-blue-500 focus:border-blue-500'
                 }`}
               />
-              <span className="ml-1.5 text-gray-600 text-xs font-semibold">/ {totals.test}</span>
+              <span className="ml-1.5 text-gray-600 text-xs font-semibold">
+                / {selectedGrade === 'All' ? '—' : totals.test ?? '—'}
+              </span>
             </div>
           </td>
         )}
 
         {/* Classwork Score */}
-        {enabledCategories.classwork && (
+        {(selectedGrade === 'All' || enabledCategories.classwork) && (
           <td className="px-3 py-3 whitespace-nowrap">
             <div className="flex items-center">
               <input
                 type="number"
                 min="0"
-                max={totals.classwork}
+                max={totals.classwork ?? undefined}
                 placeholder="0"
                 value={studentScore.classwork !== undefined ? studentScore.classwork : ''}
                 onChange={(e) => handleScoreChange(student.id, 'classwork', e.target.value)}
+                disabled={selectedGrade === 'All'}
                 className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
                   isClassworkExceeded
                     ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-400 bg-white focus:ring-blue-500 focus:border-blue-500'
                 }`}
               />
-              <span className="ml-1.5 text-gray-600 text-xs font-semibold">/ {totals.classwork}</span>
+              <span className="ml-1.5 text-gray-600 text-xs font-semibold">
+                / {selectedGrade === 'All' ? '—' : totals.classwork ?? '—'}
+              </span>
             </div>
           </td>
         )}
 
         {/* Homework Score */}
-        {enabledCategories.homework && (
+        {(selectedGrade === 'All' || enabledCategories.homework) && (
           <td className="px-3 py-3 whitespace-nowrap">
             <div className="flex items-center">
               <input
                 type="number"
                 min="0"
-                max={totals.homework}
+                max={totals.homework ?? undefined}
                 placeholder="0"
                 value={studentScore.homework !== undefined ? studentScore.homework : ''}
                 onChange={(e) => handleScoreChange(student.id, 'homework', e.target.value)}
+                disabled={selectedGrade === 'All'}
                 className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
                   isHomeworkExceeded
                     ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
                     : 'border-gray-400 bg-white focus:ring-blue-500 focus:border-blue-500'
                 }`}
               />
-              <span className="ml-1.5 text-gray-600 text-xs font-semibold">/ {totals.homework}</span>
+              <span className="ml-1.5 text-gray-600 text-xs font-semibold">
+                / {selectedGrade === 'All' ? '—' : totals.homework ?? '—'}
+              </span>
             </div>
           </td>
         )}
@@ -572,6 +582,7 @@ export function EntryForm({ students }: EntryFormProps) {
               placeholder="0"
               value={studentScore.behavior !== undefined ? studentScore.behavior : ''}
               onChange={(e) => handleScoreChange(student.id, 'behavior', e.target.value)}
+              disabled={selectedGrade === 'All'}
               className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
                 isBehaviorExceeded
                   ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
@@ -589,19 +600,19 @@ export function EntryForm({ students }: EntryFormProps) {
     <thead className="bg-gray-100">
       <tr>
         <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Student</th>
-        {enabledCategories.test && (
+        {(selectedGrade === 'All' || enabledCategories.test) && (
           <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
-            Test ({totals.test})
+            Test ({selectedGrade === 'All' ? '—' : totals.test ?? '—'})
           </th>
         )}
-        {enabledCategories.classwork && (
+        {(selectedGrade === 'All' || enabledCategories.classwork) && (
           <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
-            Classwork ({totals.classwork})
+            Classwork ({selectedGrade === 'All' ? '—' : totals.classwork ?? '—'})
           </th>
         )}
-        {enabledCategories.homework && (
+        {(selectedGrade === 'All' || enabledCategories.homework) && (
           <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
-            Homework ({totals.homework})
+            Homework ({selectedGrade === 'All' ? '—' : totals.homework ?? '—'})
           </th>
         )}
         <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
@@ -641,7 +652,7 @@ export function EntryForm({ students }: EntryFormProps) {
             <select
               id="entry-grade-filter"
               value={selectedGrade}
-              onChange={(e) => setSelectedGrade(e.target.value)}
+              onChange={(e) => handleGradeChange(e.target.value)}
               className="w-full px-4 py-2.5 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
             >
               <option value="All" className="text-gray-900 bg-white">
@@ -717,12 +728,18 @@ export function EntryForm({ students }: EntryFormProps) {
               <input
                 type="checkbox"
                 checked={enabledCategories.test}
-                onChange={(e) => setEnabledCategories((prev) => ({ ...prev, test: e.target.checked }))}
+                disabled={selectedGrade === 'All'}
+                onChange={(e) => {
+                  setEnabledCategories((prev) => ({ ...prev, test: e.target.checked }));
+                  setHasUnsavedChanges(true);
+                }}
                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-400 cursor-pointer"
               />
               <span>Test</span>
             </label>
-            {enabledCategories.test ? (
+            {selectedGrade === 'All' ? (
+              <p className="text-xs text-gray-500">—</p>
+            ) : enabledCategories.test ? (
               <div>
                 <label htmlFor="total-test" className="block text-xs font-semibold text-gray-700 mb-1">
                   Test Total
@@ -731,10 +748,17 @@ export function EntryForm({ students }: EntryFormProps) {
                   id="total-test"
                   type="number"
                   min="1"
-                  value={totals.test}
-                  onChange={(e) => setTotals((prev) => ({ ...prev, test: Math.max(1, Number(e.target.value) || 0) }))}
+                  value={totals.test ?? ''}
+                  onChange={(e) => {
+                    setTotals((prev) => ({
+                      ...prev,
+                      test: e.target.value === '' ? null : Number(e.target.value),
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
                   className="w-full px-3 py-2 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+                <p className="mt-1 text-xs text-gray-500">Set total for this assessment.</p>
               </div>
             ) : (
               <p className="text-xs text-gray-500 italic">Category disabled for Week {week}</p>
@@ -747,12 +771,18 @@ export function EntryForm({ students }: EntryFormProps) {
               <input
                 type="checkbox"
                 checked={enabledCategories.classwork}
-                onChange={(e) => setEnabledCategories((prev) => ({ ...prev, classwork: e.target.checked }))}
+                disabled={selectedGrade === 'All'}
+                onChange={(e) => {
+                  setEnabledCategories((prev) => ({ ...prev, classwork: e.target.checked }));
+                  setHasUnsavedChanges(true);
+                }}
                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-400 cursor-pointer"
               />
               <span>Classwork</span>
             </label>
-            {enabledCategories.classwork ? (
+            {selectedGrade === 'All' ? (
+              <p className="text-xs text-gray-500">—</p>
+            ) : enabledCategories.classwork ? (
               <div>
                 <label htmlFor="total-classwork" className="block text-xs font-semibold text-gray-700 mb-1">
                   Classwork Total
@@ -761,10 +791,17 @@ export function EntryForm({ students }: EntryFormProps) {
                   id="total-classwork"
                   type="number"
                   min="1"
-                  value={totals.classwork}
-                  onChange={(e) => setTotals((prev) => ({ ...prev, classwork: Math.max(1, Number(e.target.value) || 0) }))}
+                  value={totals.classwork ?? ''}
+                  onChange={(e) => {
+                    setTotals((prev) => ({
+                      ...prev,
+                      classwork: e.target.value === '' ? null : Number(e.target.value),
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
                   className="w-full px-3 py-2 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+                <p className="mt-1 text-xs text-gray-500">Set total for this assessment.</p>
               </div>
             ) : (
               <p className="text-xs text-gray-500 italic">Category disabled for Week {week}</p>
@@ -777,12 +814,18 @@ export function EntryForm({ students }: EntryFormProps) {
               <input
                 type="checkbox"
                 checked={enabledCategories.homework}
-                onChange={(e) => setEnabledCategories((prev) => ({ ...prev, homework: e.target.checked }))}
+                disabled={selectedGrade === 'All'}
+                onChange={(e) => {
+                  setEnabledCategories((prev) => ({ ...prev, homework: e.target.checked }));
+                  setHasUnsavedChanges(true);
+                }}
                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-400 cursor-pointer"
               />
               <span>Homework</span>
             </label>
-            {enabledCategories.homework ? (
+            {selectedGrade === 'All' ? (
+              <p className="text-xs text-gray-500">—</p>
+            ) : enabledCategories.homework ? (
               <div>
                 <label htmlFor="total-homework" className="block text-xs font-semibold text-gray-700 mb-1">
                   Homework Total
@@ -791,16 +834,28 @@ export function EntryForm({ students }: EntryFormProps) {
                   id="total-homework"
                   type="number"
                   min="1"
-                  value={totals.homework}
-                  onChange={(e) => setTotals((prev) => ({ ...prev, homework: Math.max(1, Number(e.target.value) || 0) }))}
+                  value={totals.homework ?? ''}
+                  onChange={(e) => {
+                    setTotals((prev) => ({
+                      ...prev,
+                      homework: e.target.value === '' ? null : Number(e.target.value),
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
                   className="w-full px-3 py-2 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+                <p className="mt-1 text-xs text-gray-500">Set total for this assessment.</p>
               </div>
             ) : (
               <p className="text-xs text-gray-500 italic">Category disabled for Week {week}</p>
             )}
           </div>
         </div>
+        {selectedGrade === 'All' && (
+          <p className="mt-4 text-sm font-medium text-amber-800">
+            Select a specific grade to configure and enter scores.
+          </p>
+        )}
       </div>
 
       {/* Status Messages */}
@@ -879,11 +934,15 @@ export function EntryForm({ students }: EntryFormProps) {
       <div className="mt-6">
         <button
           onClick={validateAndSubmit}
-          disabled={loading || loadingExisting}
+          disabled={loading || loadingExisting || selectedGrade === 'All'}
+          title={selectedGrade === 'All' ? 'Select a specific grade to save scores.' : undefined}
           className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 cursor-pointer shadow-sm"
         >
           {loading ? 'Saving...' : 'Save Scores'}
         </button>
+        {selectedGrade === 'All' && (
+          <p className="mt-2 text-sm text-gray-600">Select a specific grade to save scores.</p>
+        )}
       </div>
     </div>
   );
