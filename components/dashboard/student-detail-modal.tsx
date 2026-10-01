@@ -6,7 +6,7 @@ import { CURRENT_TERM, CURRENT_YEAR } from '@/lib/config';
 import { calculateWeeklyPercentage } from '@/lib/utils/calculations';
 import { getPercentageColors } from '@/lib/utils/colors';
 import { processGradeData } from '@/lib/utils/processGradeData';
-import type { Student, AcademicScore, BehaviorScore } from '@/types';
+import type { Student, AcademicScore, BehaviorScore, WeekConfig } from '@/types';
 
 interface StudentDetailModalProps {
   student: Student;
@@ -86,12 +86,22 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
 
         if (behaviorErr) throw behaviorErr;
 
+        const { data: weekConfigs, error: weekConfigErr } = await supabase
+          .from('week_config')
+          .select('*')
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR)
+          .eq('grade', student.grade);
+
+        if (weekConfigErr) throw weekConfigErr;
+
         // Process data for student's grade
         const gradeData = processGradeData(
           student.grade,
           gradeStudents ?? [],
           (academicScores as AcademicScore[]) ?? [],
-          (behaviorScores as BehaviorScore[]) ?? []
+          (behaviorScores as BehaviorScore[]) ?? [],
+          (weekConfigs as WeekConfig[]) ?? []
         );
 
         // Find this student's computed overall data
@@ -131,8 +141,21 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
           const homework = homeworkScore
             ? { score: homeworkScore.score, total: homeworkScore.total }
             : undefined;
+          const configuredRows = ((weekConfigs as WeekConfig[]) ?? []).filter(
+            (config) => config.week === week
+          );
+          const configuredCategories = {
+            test: configuredRows.some((config) => config.category === 'test'),
+            classwork: configuredRows.some((config) => config.category === 'classwork'),
+            homework: configuredRows.some((config) => config.category === 'homework'),
+          };
 
-          const weeklyPercentage = calculateWeeklyPercentage(test, classwork, homework);
+          const weeklyPercentage = calculateWeeklyPercentage(
+            configuredCategories,
+            test,
+            classwork,
+            homework
+          );
 
           rows.push({
             week,

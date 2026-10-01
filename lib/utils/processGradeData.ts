@@ -4,7 +4,14 @@ import {
   calculateAcademicRanks,
   calculateBehaviorRanks,
 } from './calculations';
-import type { Student, AcademicScore, BehaviorScore, StudentAcademicData, StudentBehaviorData } from '@/types';
+import type {
+  Student,
+  AcademicScore,
+  BehaviorScore,
+  WeekConfig,
+  StudentAcademicData,
+  StudentBehaviorData,
+} from '@/types';
 
 export interface GradeProcessedData {
   grade: string;
@@ -31,7 +38,8 @@ export function processGradeData(
   grade: string,
   gradeStudents: Student[],
   academicScores: AcademicScore[],
-  behaviorScores: BehaviorScore[]
+  behaviorScores: BehaviorScore[],
+  weekConfigs: WeekConfig[]
 ): GradeProcessedData {
   // --- Academic data ---
   const academicData: StudentAcademicData[] = gradeStudents.map((student) => {
@@ -40,12 +48,20 @@ export function processGradeData(
     const weeklyScores = [];
     for (let week = 1; week <= 12; week++) {
       const weekScores = studentScores.filter((s) => s.week === week);
+      const configuredCategories = weekConfigs.filter(
+        (config) => config.grade === grade && config.week === week
+      );
       const test = weekScores.find((s) => s.category === 'test');
       const classwork = weekScores.find((s) => s.category === 'classwork');
       const homework = weekScores.find((s) => s.category === 'homework');
 
       weeklyScores.push({
         week,
+        configuredCategories: {
+          test: configuredCategories.some((config) => config.category === 'test'),
+          classwork: configuredCategories.some((config) => config.category === 'classwork'),
+          homework: configuredCategories.some((config) => config.category === 'homework'),
+        },
         test: test ? { score: test.score, total: test.total } : undefined,
         classwork: classwork ? { score: classwork.score, total: classwork.total } : undefined,
         homework: homework ? { score: homework.score, total: homework.total } : undefined,
@@ -53,7 +69,10 @@ export function processGradeData(
     }
 
     const hasData = weeklyScores.some(
-      (w) => w.test !== undefined || w.classwork !== undefined || w.homework !== undefined
+      (w) =>
+        w.configuredCategories.test ||
+        w.configuredCategories.classwork ||
+        w.configuredCategories.homework
     );
 
     return {

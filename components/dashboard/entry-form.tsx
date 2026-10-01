@@ -355,19 +355,19 @@ export function EntryForm({ students }: EntryFormProps) {
 
       for (const student of filteredStudents) {
         const studentId = student.id;
-        const studentScores = scores[studentId];
-        if (!studentScores) continue;
+        const studentScores = scores[studentId] || {};
 
         // Test score if category is enabled
-        if (enabledCategories.test && studentScores.test !== undefined && !isNaN(studentScores.test)) {
-          if (studentScores.test < 0 || studentScores.test > testTotal) {
+        if (enabledCategories.test && !isNaN(studentScores.test ?? 0)) {
+          const testScore = studentScores.test ?? 0;
+          if (testScore < 0 || testScore > testTotal) {
             throw new Error(`Test scores must be between 0 and ${testTotal}`);
           }
           academicUpserts.push({
             student_id: studentId,
             week,
             category: 'test',
-            score: studentScores.test,
+            score: testScore,
             total: testTotal,
             term: CURRENT_TERM,
             year: CURRENT_YEAR,
@@ -377,17 +377,17 @@ export function EntryForm({ students }: EntryFormProps) {
         // Classwork score if category is enabled
         if (
           enabledCategories.classwork &&
-          studentScores.classwork !== undefined &&
-          !isNaN(studentScores.classwork)
+          !isNaN(studentScores.classwork ?? 0)
         ) {
-          if (studentScores.classwork < 0 || studentScores.classwork > classworkTotal) {
+          const classworkScore = studentScores.classwork ?? 0;
+          if (classworkScore < 0 || classworkScore > classworkTotal) {
             throw new Error(`Classwork scores must be between 0 and ${classworkTotal}`);
           }
           academicUpserts.push({
             student_id: studentId,
             week,
             category: 'classwork',
-            score: studentScores.classwork,
+            score: classworkScore,
             total: classworkTotal,
             term: CURRENT_TERM,
             year: CURRENT_YEAR,
@@ -397,17 +397,17 @@ export function EntryForm({ students }: EntryFormProps) {
         // Homework score if category is enabled
         if (
           enabledCategories.homework &&
-          studentScores.homework !== undefined &&
-          !isNaN(studentScores.homework)
+          !isNaN(studentScores.homework ?? 0)
         ) {
-          if (studentScores.homework < 0 || studentScores.homework > homeworkTotal) {
+          const homeworkScore = studentScores.homework ?? 0;
+          if (homeworkScore < 0 || homeworkScore > homeworkTotal) {
             throw new Error(`Homework scores must be between 0 and ${homeworkTotal}`);
           }
           academicUpserts.push({
             student_id: studentId,
             week,
             category: 'homework',
-            score: studentScores.homework,
+            score: homeworkScore,
             total: homeworkTotal,
             term: CURRENT_TERM,
             year: CURRENT_YEAR,

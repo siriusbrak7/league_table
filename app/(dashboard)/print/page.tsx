@@ -7,7 +7,7 @@ export default async function PrintPage() {
   const supabase = await createClient();
 
   // Fetch all data in parallel, scoped to current term and year
-  const [studentsRes, academicRes, behaviorRes] = await Promise.all([
+  const [studentsRes, academicRes, behaviorRes, weekConfigRes] = await Promise.all([
     supabase
       .from('students')
       .select('*')
@@ -23,10 +23,16 @@ export default async function PrintPage() {
       .select('*')
       .eq('term', CURRENT_TERM)
       .eq('year', CURRENT_YEAR),
+    supabase
+      .from('week_config')
+      .select('*')
+      .eq('term', CURRENT_TERM)
+      .eq('year', CURRENT_YEAR),
   ]);
 
   // Surface any fetch errors visibly instead of rendering blank tables
-  const fetchError = studentsRes.error ?? academicRes.error ?? behaviorRes.error;
+  const fetchError =
+    studentsRes.error ?? academicRes.error ?? behaviorRes.error ?? weekConfigRes.error;
   if (fetchError) {
     return (
       <div className="p-8">
@@ -44,13 +50,14 @@ export default async function PrintPage() {
   const students = studentsRes.data ?? [];
   const academicScores = academicRes.data ?? [];
   const behaviorScores = behaviorRes.data ?? [];
+  const weekConfigs = weekConfigRes.data ?? [];
 
   // Process data per grade level using the shared utility
   const gradeSections = GRADES
     .map((grade) => {
       const gradeStudents = students.filter((s) => String(s.grade) === grade);
       if (gradeStudents.length === 0) return null;
-      return processGradeData(grade, gradeStudents, academicScores, behaviorScores);
+      return processGradeData(grade, gradeStudents, academicScores, behaviorScores, weekConfigs);
     })
     .filter((section): section is NonNullable<typeof section> => section !== null);
 

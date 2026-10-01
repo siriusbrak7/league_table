@@ -2,70 +2,37 @@ import { StudentAcademicData, StudentBehaviorData } from '@/types';
 
 // Calculate weighted percentage for a single week
 export function calculateWeeklyPercentage(
+  configuredCategories: { test?: boolean; classwork?: boolean; homework?: boolean },
   test?: { score: number; total: number },
   classwork?: { score: number; total: number },
   homework?: { score: number; total: number }
 ): number | null {
-  // If no scores for this week, return null
-  if (!test && !classwork && !homework) {
-    return null;
-  }
+  const testWeight = configuredCategories.test ? 0.5 : 0;
+  const classworkWeight = configuredCategories.classwork ? 0.3 : 0;
+  const homeworkWeight = configuredCategories.homework ? 0.2 : 0;
+  const totalWeight = testWeight + classworkWeight + homeworkWeight;
 
-  let testPercent = 0;
-  let classworkPercent = 0;
-  let homeworkPercent = 0;
-  let hasTest = false;
-  let hasClasswork = false;
-  let hasHomework = false;
-
-  if (test && test.total > 0) {
-    testPercent = (test.score / test.total) * 100;
-    hasTest = true;
-  }
-
-  if (classwork && classwork.total > 0) {
-    classworkPercent = (classwork.score / classwork.total) * 100;
-    hasClasswork = true;
-  }
-
-  if (homework && homework.total > 0) {
-    homeworkPercent = (homework.score / homework.total) * 100;
-    hasHomework = true;
-  }
-
-  // Apply weights (50% test, 30% classwork, 20% homework)
-  // Only apply weights for categories that have data
-  let weightedSum = 0;
-  let totalWeight = 0;
-
-  if (hasTest) {
-    weightedSum += testPercent * 0.50;
-    totalWeight += 0.50;
-  }
-
-  if (hasClasswork) {
-    weightedSum += classworkPercent * 0.30;
-    totalWeight += 0.30;
-  }
-
-  if (hasHomework) {
-    weightedSum += homeworkPercent * 0.20;
-    totalWeight += 0.20;
-  }
-
-  // If no weights were applied, return null
   if (totalWeight === 0) {
     return null;
   }
 
-  // Normalize by total weight applied
-  return (weightedSum / totalWeight);
+  const testPercent = test?.total && test.total > 0 ? (test.score / test.total) * 100 : 0;
+  const classworkPercent =
+    classwork?.total && classwork.total > 0 ? (classwork.score / classwork.total) * 100 : 0;
+  const homeworkPercent =
+    homework?.total && homework.total > 0 ? (homework.score / homework.total) * 100 : 0;
+
+  return (
+    (testPercent * testWeight + classworkPercent * classworkWeight + homeworkPercent * homeworkWeight) /
+    totalWeight
+  );
 }
 
 // Calculate overall weighted percentage for a student across all weeks
 export function calculateOverallPercentage(
   weeklyScores: {
     week: number;
+    configuredCategories: { test?: boolean; classwork?: boolean; homework?: boolean };
     test?: { score: number; total: number };
     classwork?: { score: number; total: number };
     homework?: { score: number; total: number };
@@ -74,7 +41,12 @@ export function calculateOverallPercentage(
   const weeklyPercentages: number[] = [];
 
   for (const week of weeklyScores) {
-    const weeklyPercent = calculateWeeklyPercentage(week.test, week.classwork, week.homework);
+    const weeklyPercent = calculateWeeklyPercentage(
+      week.configuredCategories,
+      week.test,
+      week.classwork,
+      week.homework
+    );
     if (weeklyPercent !== null) {
       weeklyPercentages.push(weeklyPercent);
     }

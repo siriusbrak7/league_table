@@ -40,7 +40,7 @@ export default async function PublicLeaguePage({ params }: PublicLeaguePageProps
   const grade = tokenData.grade;
 
   // 2. Fetch students, academic_scores, and behavior_scores for this grade
-  const [studentsRes, academicRes, behaviorRes] = await Promise.all([
+  const [studentsRes, academicRes, behaviorRes, weekConfigRes] = await Promise.all([
     supabase
       .from('students')
       .select('*')
@@ -56,14 +56,21 @@ export default async function PublicLeaguePage({ params }: PublicLeaguePageProps
       .select('*')
       .eq('term', CURRENT_TERM)
       .eq('year', CURRENT_YEAR),
+    supabase
+      .from('week_config')
+      .select('*')
+      .eq('term', CURRENT_TERM)
+      .eq('year', CURRENT_YEAR)
+      .eq('grade', grade),
   ]);
 
   const students = studentsRes.data ?? [];
   const academicScores = academicRes.data ?? [];
   const behaviorScores = behaviorRes.data ?? [];
+  const weekConfigs = weekConfigRes.data ?? [];
 
   // 3. Process grade data
-  const processedData = processGradeData(grade, students, academicScores, behaviorScores);
+  const processedData = processGradeData(grade, students, academicScores, behaviorScores, weekConfigs);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">

@@ -27,8 +27,14 @@ export default async function DashboardPage() {
     .eq('term', CURRENT_TERM)
     .eq('year', CURRENT_YEAR);
 
+  const { data: weekConfigs, error: weekConfigError } = await supabase
+    .from('week_config')
+    .select('*')
+    .eq('term', CURRENT_TERM)
+    .eq('year', CURRENT_YEAR);
+
   // Surface any fetch errors visibly instead of rendering a blank table
-  const fetchError = studentsError ?? academicError ?? behaviorError;
+  const fetchError = studentsError ?? academicError ?? behaviorError ?? weekConfigError;
   if (fetchError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6 mt-6">
@@ -48,7 +54,13 @@ export default async function DashboardPage() {
         (student) => String(student.grade) === grade
       );
       if (gradeStudents.length === 0) return null;
-      return processGradeData(grade, gradeStudents, academicScores ?? [], behaviorScores ?? []);
+      return processGradeData(
+        grade,
+        gradeStudents,
+        academicScores ?? [],
+        behaviorScores ?? [],
+        weekConfigs ?? []
+      );
     })
     .filter((section): section is NonNullable<typeof section> => section !== null);
 
