@@ -2,6 +2,15 @@ import { createClient } from '@/lib/supabase/server';
 import { CURRENT_TERM, CURRENT_YEAR } from '@/lib/config';
 import { processGradeData } from '@/lib/utils/processGradeData';
 import { getPercentageColors } from '@/lib/utils/colors';
+import type { AcademicScore, BehaviorScore, Student, WeekConfig } from '@/types';
+
+interface LeagueData {
+  grade: string;
+  students: Student[];
+  academic_scores: Pick<AcademicScore, 'student_id' | 'week' | 'category' | 'score' | 'total'>[];
+  behavior_scores: Pick<BehaviorScore, 'student_id' | 'week' | 'score'>[];
+  week_config: Pick<WeekConfig, 'week' | 'category' | 'total'>[];
+}
 
 interface PublicLeaguePageProps {
   params: Promise<{
@@ -13,14 +22,11 @@ export default async function PublicLeaguePage({ params }: PublicLeaguePageProps
   const { token } = await params;
   const supabase = await createClient();
 
-  // 1. Look up token in grade_tokens
-  const { data: tokenData, error: tokenError } = await supabase
-    .from('grade_tokens')
-    .select('*')
-    .eq('token', token)
-    .single();
+  // 1. Load the grade and all league data through the public RPC
+  const { data, error } = await supabase.rpc('get_league_data', { p_token: token });
+  const leagueData = data as LeagueData | null;
 
-  if (tokenError || !tokenData) {
+  if (error || !leagueData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 max-w-md w-full text-center">
@@ -37,40 +43,17 @@ export default async function PublicLeaguePage({ params }: PublicLeaguePageProps
     );
   }
 
-  const grade = tokenData.grade;
+  const { grade, students, academic_scores, behavior_scores, week_config } = leagueData;
+  const weekConfigs = week_config.map((config) => ({ ...config, grade }));
 
-  // 2. Fetch students, academic_scores, and behavior_scores for this grade
-  const [studentsRes, academicRes, behaviorRes, weekConfigRes] = await Promise.all([
-    supabase
-      .from('students')
-      .select('*')
-      .eq('grade', grade)
-      .order('name'),
-    supabase
-      .from('academic_scores')
-      .select('*')
-      .eq('term', CURRENT_TERM)
-      .eq('year', CURRENT_YEAR),
-    supabase
-      .from('behavior_scores')
-      .select('*')
-      .eq('term', CURRENT_TERM)
-      .eq('year', CURRENT_YEAR),
-    supabase
-      .from('week_config')
-      .select('*')
-      .eq('term', CURRENT_TERM)
-      .eq('year', CURRENT_YEAR)
-      .eq('grade', grade),
-  ]);
-
-  const students = studentsRes.data ?? [];
-  const academicScores = academicRes.data ?? [];
-  const behaviorScores = behaviorRes.data ?? [];
-  const weekConfigs = weekConfigRes.data ?? [];
-
-  // 3. Process grade data
-  const processedData = processGradeData(grade, students, academicScores, behaviorScores, weekConfigs);
+  // 2. Process grade data
+  const processedData = processGradeData(
+    grade,
+    students,
+    academic_scores,
+    behavior_scores,
+    weekConfigs
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">

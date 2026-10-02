@@ -37,9 +37,9 @@ export interface GradeProcessedData {
 export function processGradeData(
   grade: string,
   gradeStudents: Student[],
-  academicScores: AcademicScore[],
-  behaviorScores: BehaviorScore[],
-  weekConfigs: WeekConfig[]
+  academicScores: Pick<AcademicScore, 'student_id' | 'week' | 'category' | 'score' | 'total'>[],
+  behaviorScores: Pick<BehaviorScore, 'student_id' | 'week' | 'score'>[],
+  weekConfigs: Pick<WeekConfig, 'grade' | 'week' | 'category'>[]
 ): GradeProcessedData {
   // --- Academic data ---
   const academicData: StudentAcademicData[] = gradeStudents.map((student) => {
