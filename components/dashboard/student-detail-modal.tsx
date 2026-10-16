@@ -68,23 +68,33 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
 
         if (studentsErr) throw studentsErr;
 
-        // Fetch academic scores for current term & year
-        const { data: academicScores, error: academicErr } = await supabase
-          .from('academic_scores')
-          .select('*')
-          .eq('term', CURRENT_TERM)
-          .eq('year', CURRENT_YEAR);
+        const gradeStudentIds = (gradeStudents ?? []).map((s) => s.id);
 
-        if (academicErr) throw academicErr;
+        let academicScores: AcademicScore[] = [];
+        let behaviorScores: BehaviorScore[] = [];
 
-        // Fetch behavior scores for current term & year
-        const { data: behaviorScores, error: behaviorErr } = await supabase
-          .from('behavior_scores')
-          .select('*')
-          .eq('term', CURRENT_TERM)
-          .eq('year', CURRENT_YEAR);
+        if (gradeStudentIds.length > 0) {
+          const [academicRes, behaviorRes] = await Promise.all([
+            supabase
+              .from('academic_scores')
+              .select('*')
+              .eq('term', CURRENT_TERM)
+              .eq('year', CURRENT_YEAR)
+              .in('student_id', gradeStudentIds),
+            supabase
+              .from('behavior_scores')
+              .select('*')
+              .eq('term', CURRENT_TERM)
+              .eq('year', CURRENT_YEAR)
+              .in('student_id', gradeStudentIds),
+          ]);
 
-        if (behaviorErr) throw behaviorErr;
+          if (academicRes.error) throw academicRes.error;
+          if (behaviorRes.error) throw behaviorRes.error;
+
+          academicScores = (academicRes.data as AcademicScore[]) ?? [];
+          behaviorScores = (behaviorRes.data as BehaviorScore[]) ?? [];
+        }
 
         const { data: weekConfigs, error: weekConfigErr } = await supabase
           .from('week_config')

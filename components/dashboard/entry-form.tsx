@@ -40,6 +40,14 @@ export function EntryForm({ students }: EntryFormProps) {
     homework: true,
   });
 
+  // Track initially loaded categories and scores to support deletions and cleared scores
+  const [initialCategories, setInitialCategories] = useState<EnabledCategories>({
+    test: false,
+    classwork: false,
+    homework: false,
+  });
+  const [initialScores, setInitialScores] = useState<Record<string, StudentWeekScores>>({});
+
   // Totals for enabled categories
   const [totals, setTotals] = useState<EntryTotals>({ test: null, classwork: null, homework: null });
 
@@ -53,48 +61,65 @@ export function EntryForm({ students }: EntryFormProps) {
 
   const supabase = useMemo(() => createClient(), []);
 
-  // Helper to fetch all weeks that have scores entered across all students
-  const refreshWeeksWithData = useCallback(async () => {
-    try {
-      const [academicRes, behaviorRes] = await Promise.all([
-        supabase
-          .from('academic_scores')
-          .select('week')
-          .eq('term', CURRENT_TERM)
-          .eq('year', CURRENT_YEAR),
-        supabase
-          .from('behavior_scores')
-          .select('week')
-          .eq('term', CURRENT_TERM)
-          .eq('year', CURRENT_YEAR),
-      ]);
+  // Filter or group students based on selectedGrade with defensive string coercion
+  const filteredStudents = useMemo(() => {
+    if (selectedGrade === 'All') return students;
+    return students.filter((s) => String(s.grade) === selectedGrade);
+  }, [students, selectedGrade]);
 
-      const weeksSet = new Set<number>();
-      (academicRes.data || []).forEach((row) => weeksSet.add(row.week));
-      (behaviorRes.data || []).forEach((row) => weeksSet.add(row.week));
-      setWeeksWithData(weeksSet);
-    } catch {
-      // Ignore completeness fetch errors
+  // Grouped students when "All" is selected
+  const studentsByGrade = useMemo(() => {
+    const map = new Map<string, Student[]>();
+    for (const g of GRADES) {
+      map.set(g, []);
     }
-  }, [supabase]);
+    students.forEach((s) => {
+      const gStr = String(s.grade);
+      const existing = map.get(gStr);
+      if (existing) {
+        existing.push(s);
+      } else {
+        map.set(gStr, [s]);
+      }
+    });
+    return map;
+  }, [students]);
 
-  // Initial load of weeks with data
+  // Load weeks with data scoped to the selected grade
   useEffect(() => {
     let isCancelled = false;
 
-    async function loadWeeksWithData() {
+    async function loadWeeks() {
       try {
+        let academicQuery = supabase
+          .from('academic_scores')
+          .select('week, student_id')
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR);
+
+        let behaviorQuery = supabase
+          .from('behavior_scores')
+          .select('week, student_id')
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR);
+
+        if (selectedGrade !== 'All') {
+          const gradeIds = students
+            .filter((s) => String(s.grade) === selectedGrade)
+            .map((s) => s.id);
+
+          if (gradeIds.length === 0) {
+            if (!isCancelled) setWeeksWithData(new Set());
+            return;
+          }
+
+          academicQuery = academicQuery.in('student_id', gradeIds);
+          behaviorQuery = behaviorQuery.in('student_id', gradeIds);
+        }
+
         const [academicRes, behaviorRes] = await Promise.all([
-          supabase
-            .from('academic_scores')
-            .select('week')
-            .eq('term', CURRENT_TERM)
-            .eq('year', CURRENT_YEAR),
-          supabase
-            .from('behavior_scores')
-            .select('week')
-            .eq('term', CURRENT_TERM)
-            .eq('year', CURRENT_YEAR),
+          academicQuery,
+          behaviorQuery,
         ]);
 
         if (!isCancelled) {
@@ -108,35 +133,66 @@ export function EntryForm({ students }: EntryFormProps) {
       }
     }
 
-    loadWeeksWithData();
+    loadWeeks();
 
     return () => {
       isCancelled = true;
     };
-  }, [supabase]);
+  }, [supabase, selectedGrade, students]);
 
-  // Filter or group students based on selectedGrade
-  const filteredStudents = useMemo(() => {
-    if (selectedGrade === 'All') return students;
-    return students.filter((s) => s.grade === selectedGrade);
-  }, [students, selectedGrade]);
+  // Helper to re-fetch all weeks that have scores entered, scoped to the selected grade
+  const refreshWeeksWithData = useCallback(async () => {
+    try {
+      let academicQuery = supabase
+        .from('academic_scores')
+        .select('week, student_id')
+        .eq('term', CURRENT_TERM)
+        .eq('year', CURRENT_YEAR);
 
-  // Grouped students when "All" is selected
-  const studentsByGrade = useMemo(() => {
-    const map = new Map<string, Student[]>();
-    for (const g of GRADES) {
-      map.set(g, []);
-    }
-    students.forEach((s) => {
-      const existing = map.get(s.grade);
-      if (existing) {
-        existing.push(s);
-      } else {
-        map.set(s.grade, [s]);
+      let behaviorQuery = supabase
+        .from('behavior_scores')
+        .select('week, student_id')
+        .eq('term', CURRENT_TERM)
+        .eq('year', CURRENT_YEAR);
+
+      if (selectedGrade !== 'All') {
+        const gradeIds = students
+          .filter((s) => String(s.grade) === selectedGrade)
+          .map((s) => s.id);
+
+        if (gradeIds.length === 0) {
+          setWeeksWithData(new Set());
+          return;
+        }
+
+        academicQuery = academicQuery.in('student_id', gradeIds);
+        behaviorQuery = behaviorQuery.in('student_id', gradeIds);
       }
-    });
-    return map;
-  }, [students]);
+
+      const [academicRes, behaviorRes] = await Promise.all([
+        academicQuery,
+        behaviorQuery,
+      ]);
+
+      const weeksSet = new Set<number>();
+      (academicRes.data || []).forEach((row) => weeksSet.add(row.week));
+      (behaviorRes.data || []).forEach((row) => weeksSet.add(row.week));
+      setWeeksWithData(weeksSet);
+    } catch {
+      // Ignore completeness fetch errors
+    }
+  }, [supabase, selectedGrade, students]);
+
+  // Guard unsaved changes when user attempts to close or reload window
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   // Load grade-specific configuration and existing scores whenever the week or grade changes.
   useEffect(() => {
@@ -150,19 +206,34 @@ export function EntryForm({ students }: EntryFormProps) {
       setTotals({ test: null, classwork: null, homework: null });
 
       try {
+        let academicQuery = supabase
+          .from('academic_scores')
+          .select('*')
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR)
+          .eq('week', week);
+
+        let behaviorQuery = supabase
+          .from('behavior_scores')
+          .select('*')
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR)
+          .eq('week', week);
+
+        if (selectedGrade !== 'All') {
+          const gradeIds = students
+            .filter((s) => String(s.grade) === selectedGrade)
+            .map((s) => s.id);
+
+          if (gradeIds.length > 0) {
+            academicQuery = academicQuery.in('student_id', gradeIds);
+            behaviorQuery = behaviorQuery.in('student_id', gradeIds);
+          }
+        }
+
         const [academicRes, behaviorRes] = await Promise.all([
-          supabase
-            .from('academic_scores')
-            .select('*')
-            .eq('term', CURRENT_TERM)
-            .eq('year', CURRENT_YEAR)
-            .eq('week', week),
-          supabase
-            .from('behavior_scores')
-            .select('*')
-            .eq('term', CURRENT_TERM)
-            .eq('year', CURRENT_YEAR)
-            .eq('week', week),
+          academicQuery,
+          behaviorQuery,
         ]);
 
         if (academicRes.error) throw academicRes.error;
@@ -185,12 +256,15 @@ export function EntryForm({ students }: EntryFormProps) {
           const academicRows = academicRes.data || [];
           const behaviorRows = behaviorRes.data || [];
 
+          const loadedCategories: EnabledCategories = {
+            test: configRows.some((c) => c.category === 'test'),
+            classwork: configRows.some((c) => c.category === 'classwork'),
+            homework: configRows.some((c) => c.category === 'homework'),
+          };
+
           if (selectedGrade !== 'All') {
-            setEnabledCategories({
-              test: configRows.some((c) => c.category === 'test'),
-              classwork: configRows.some((c) => c.category === 'classwork'),
-              homework: configRows.some((c) => c.category === 'homework'),
-            });
+            setEnabledCategories(loadedCategories);
+            setInitialCategories(loadedCategories);
           }
 
           // Totals come only from the selected grade's week_config rows.
@@ -223,6 +297,8 @@ export function EntryForm({ students }: EntryFormProps) {
           });
 
           setScores(loadedScores);
+          setInitialScores(loadedScores);
+          setHasUnsavedChanges(false);
         }
       } catch (err) {
         if (!isCancelled) {
@@ -256,6 +332,20 @@ export function EntryForm({ students }: EntryFormProps) {
     setSelectedGrade(nextGrade);
   };
 
+  const handleWeekChange = (nextWeek: number) => {
+    if (nextWeek === week) return;
+    if (
+      hasUnsavedChanges &&
+      !window.confirm('You have unsaved changes. Discard them and switch weeks?')
+    ) {
+      return;
+    }
+
+    setScores({});
+    setHasUnsavedChanges(false);
+    setWeek(nextWeek);
+  };
+
   const handleScoreChange = (studentId: string, field: keyof StudentWeekScores, valStr: string) => {
     const val = valStr === '' ? undefined : Number(valStr);
     setHasUnsavedChanges(true);
@@ -279,7 +369,7 @@ export function EntryForm({ students }: EntryFormProps) {
       setError(null);
       setSuccess(false);
 
-      // Validate category totals
+      // Validate category totals for enabled categories
       if (enabledCategories.test && (totals.test === null || totals.test < 1)) {
         throw new Error('Set total for Test before saving.');
       }
@@ -334,7 +424,39 @@ export function EntryForm({ students }: EntryFormProps) {
         if (configError) throw configError;
       }
 
-      // 2. Prepare score upserts
+      // Handle disabled categories: delete week_config and student scores for that category
+      const disabledCategories: string[] = [];
+      if (!enabledCategories.test && initialCategories.test) disabledCategories.push('test');
+      if (!enabledCategories.classwork && initialCategories.classwork) disabledCategories.push('classwork');
+      if (!enabledCategories.homework && initialCategories.homework) disabledCategories.push('homework');
+
+      const gradeStudentIds = filteredStudents.map((s) => s.id);
+
+      if (disabledCategories.length > 0) {
+        const { error: delConfigError } = await supabase
+          .from('week_config')
+          .delete()
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR)
+          .eq('week', week)
+          .eq('grade', selectedGrade)
+          .in('category', disabledCategories);
+        if (delConfigError) throw delConfigError;
+
+        if (gradeStudentIds.length > 0) {
+          const { error: delScoresError } = await supabase
+            .from('academic_scores')
+            .delete()
+            .eq('term', CURRENT_TERM)
+            .eq('year', CURRENT_YEAR)
+            .eq('week', week)
+            .in('student_id', gradeStudentIds)
+            .in('category', disabledCategories);
+          if (delScoresError) throw delScoresError;
+        }
+      }
+
+      // 2. Prepare score upserts and track cleared scores for deletion
       const academicUpserts: {
         student_id: string;
         week: number;
@@ -353,68 +475,81 @@ export function EntryForm({ students }: EntryFormProps) {
         year: number;
       }[] = [];
 
+      const academicDeletes: { student_id: string; category: string }[] = [];
+      const behaviorDeletes: string[] = [];
+
       for (const student of filteredStudents) {
         const studentId = student.id;
         const studentScores = scores[studentId] || {};
+        const studentInitial = initialScores[studentId] || {};
 
-        // Test score if category is enabled
-        if (enabledCategories.test && !isNaN(studentScores.test ?? 0)) {
-          const testScore = studentScores.test ?? 0;
-          if (testScore < 0 || testScore > testTotal) {
-            throw new Error(`Test scores must be between 0 and ${testTotal}`);
+        // Test score
+        if (enabledCategories.test) {
+          if (studentScores.test !== undefined && !isNaN(studentScores.test)) {
+            const testScore = studentScores.test;
+            if (testScore < 0 || testScore > testTotal) {
+              throw new Error(`Test scores must be between 0 and ${testTotal}`);
+            }
+            academicUpserts.push({
+              student_id: studentId,
+              week,
+              category: 'test',
+              score: testScore,
+              total: testTotal,
+              term: CURRENT_TERM,
+              year: CURRENT_YEAR,
+            });
+          } else if (studentInitial.test !== undefined && studentScores.test === undefined) {
+            // Teacher explicitly cleared existing test score
+            academicDeletes.push({ student_id: studentId, category: 'test' });
           }
-          academicUpserts.push({
-            student_id: studentId,
-            week,
-            category: 'test',
-            score: testScore,
-            total: testTotal,
-            term: CURRENT_TERM,
-            year: CURRENT_YEAR,
-          });
         }
 
-        // Classwork score if category is enabled
-        if (
-          enabledCategories.classwork &&
-          !isNaN(studentScores.classwork ?? 0)
-        ) {
-          const classworkScore = studentScores.classwork ?? 0;
-          if (classworkScore < 0 || classworkScore > classworkTotal) {
-            throw new Error(`Classwork scores must be between 0 and ${classworkTotal}`);
+        // Classwork score
+        if (enabledCategories.classwork) {
+          if (studentScores.classwork !== undefined && !isNaN(studentScores.classwork)) {
+            const classworkScore = studentScores.classwork;
+            if (classworkScore < 0 || classworkScore > classworkTotal) {
+              throw new Error(`Classwork scores must be between 0 and ${classworkTotal}`);
+            }
+            academicUpserts.push({
+              student_id: studentId,
+              week,
+              category: 'classwork',
+              score: classworkScore,
+              total: classworkTotal,
+              term: CURRENT_TERM,
+              year: CURRENT_YEAR,
+            });
+          } else if (studentInitial.classwork !== undefined && studentScores.classwork === undefined) {
+            // Teacher explicitly cleared existing classwork score
+            academicDeletes.push({ student_id: studentId, category: 'classwork' });
           }
-          academicUpserts.push({
-            student_id: studentId,
-            week,
-            category: 'classwork',
-            score: classworkScore,
-            total: classworkTotal,
-            term: CURRENT_TERM,
-            year: CURRENT_YEAR,
-          });
         }
 
-        // Homework score if category is enabled
-        if (
-          enabledCategories.homework &&
-          !isNaN(studentScores.homework ?? 0)
-        ) {
-          const homeworkScore = studentScores.homework ?? 0;
-          if (homeworkScore < 0 || homeworkScore > homeworkTotal) {
-            throw new Error(`Homework scores must be between 0 and ${homeworkTotal}`);
+        // Homework score
+        if (enabledCategories.homework) {
+          if (studentScores.homework !== undefined && !isNaN(studentScores.homework)) {
+            const homeworkScore = studentScores.homework;
+            if (homeworkScore < 0 || homeworkScore > homeworkTotal) {
+              throw new Error(`Homework scores must be between 0 and ${homeworkTotal}`);
+            }
+            academicUpserts.push({
+              student_id: studentId,
+              week,
+              category: 'homework',
+              score: homeworkScore,
+              total: homeworkTotal,
+              term: CURRENT_TERM,
+              year: CURRENT_YEAR,
+            });
+          } else if (studentInitial.homework !== undefined && studentScores.homework === undefined) {
+            // Teacher explicitly cleared existing homework score
+            academicDeletes.push({ student_id: studentId, category: 'homework' });
           }
-          academicUpserts.push({
-            student_id: studentId,
-            week,
-            category: 'homework',
-            score: homeworkScore,
-            total: homeworkTotal,
-            term: CURRENT_TERM,
-            year: CURRENT_YEAR,
-          });
         }
 
-        // Behavior score (always independent)
+        // Behavior score
         if (studentScores.behavior !== undefined && !isNaN(studentScores.behavior)) {
           if (studentScores.behavior < 0 || studentScores.behavior > 100) {
             throw new Error('Behavior scores must be between 0 and 100');
@@ -426,6 +561,9 @@ export function EntryForm({ students }: EntryFormProps) {
             term: CURRENT_TERM,
             year: CURRENT_YEAR,
           });
+        } else if (studentInitial.behavior !== undefined && studentScores.behavior === undefined) {
+          // Teacher explicitly cleared existing behavior score
+          behaviorDeletes.push(studentId);
         }
       }
 
@@ -440,6 +578,20 @@ export function EntryForm({ students }: EntryFormProps) {
         if (academicError) throw academicError;
       }
 
+      // Delete cleared academic scores
+      for (const del of academicDeletes) {
+        const { error: delErr } = await supabase
+          .from('academic_scores')
+          .delete()
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR)
+          .eq('week', week)
+          .eq('student_id', del.student_id)
+          .eq('category', del.category);
+
+        if (delErr) throw delErr;
+      }
+
       // Upsert behavior scores
       if (behaviorUpserts.length > 0) {
         const { error: behaviorError } = await supabase
@@ -451,6 +603,21 @@ export function EntryForm({ students }: EntryFormProps) {
         if (behaviorError) throw behaviorError;
       }
 
+      // Delete cleared behavior scores
+      if (behaviorDeletes.length > 0) {
+        const { error: delBehError } = await supabase
+          .from('behavior_scores')
+          .delete()
+          .eq('term', CURRENT_TERM)
+          .eq('year', CURRENT_YEAR)
+          .eq('week', week)
+          .in('student_id', behaviorDeletes);
+
+        if (delBehError) throw delBehError;
+      }
+
+      setInitialScores(scores);
+      setInitialCategories(enabledCategories);
       setSuccess(true);
       setHasUnsavedChanges(false);
       await refreshWeeksWithData();
@@ -505,7 +672,7 @@ export function EntryForm({ students }: EntryFormProps) {
                 type="number"
                 min="0"
                 max={totals.test ?? undefined}
-                placeholder="0"
+                placeholder="—"
                 value={studentScore.test !== undefined ? studentScore.test : ''}
                 onChange={(e) => handleScoreChange(student.id, 'test', e.target.value)}
                 disabled={selectedGrade === 'All'}
@@ -530,7 +697,7 @@ export function EntryForm({ students }: EntryFormProps) {
                 type="number"
                 min="0"
                 max={totals.classwork ?? undefined}
-                placeholder="0"
+                placeholder="—"
                 value={studentScore.classwork !== undefined ? studentScore.classwork : ''}
                 onChange={(e) => handleScoreChange(student.id, 'classwork', e.target.value)}
                 disabled={selectedGrade === 'All'}
@@ -555,7 +722,7 @@ export function EntryForm({ students }: EntryFormProps) {
                 type="number"
                 min="0"
                 max={totals.homework ?? undefined}
-                placeholder="0"
+                placeholder="—"
                 value={studentScore.homework !== undefined ? studentScore.homework : ''}
                 onChange={(e) => handleScoreChange(student.id, 'homework', e.target.value)}
                 disabled={selectedGrade === 'All'}
@@ -579,7 +746,7 @@ export function EntryForm({ students }: EntryFormProps) {
               type="number"
               min="0"
               max="100"
-              placeholder="0"
+              placeholder="—"
               value={studentScore.behavior !== undefined ? studentScore.behavior : ''}
               onChange={(e) => handleScoreChange(student.id, 'behavior', e.target.value)}
               disabled={selectedGrade === 'All'}
@@ -634,7 +801,7 @@ export function EntryForm({ students }: EntryFormProps) {
             <select
               id="entry-week"
               value={week}
-              onChange={(e) => setWeek(Number(e.target.value))}
+              onChange={(e) => handleWeekChange(Number(e.target.value))}
               className="w-full px-4 py-2.5 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
@@ -692,7 +859,7 @@ export function EntryForm({ students }: EntryFormProps) {
                 <button
                   key={w}
                   type="button"
-                  onClick={() => setWeek(w)}
+                  onClick={() => handleWeekChange(w)}
                   className={pillStyle}
                 >
                   <span>Week {w}</span>
@@ -708,7 +875,7 @@ export function EntryForm({ students }: EntryFormProps) {
           <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
             <span className="text-base">⚠️</span>
             <span>
-              Week {week} already has scores entered. Any changes you save will update existing values.
+              Week {week} already has scores entered{selectedGrade !== 'All' ? ` for Grade ${selectedGrade}` : ''}. Any changes you save will update existing values.
             </span>
           </div>
         )}

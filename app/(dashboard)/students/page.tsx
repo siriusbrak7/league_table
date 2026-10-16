@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { StudentForm } from '@/components/students/student-form';
 import { StudentList } from '@/components/students/student-list';
+import { GRADES } from '@/lib/config';
 import type { Student } from '@/types';
 
 export default function StudentsPage() {
@@ -146,11 +147,11 @@ export default function StudentsPage() {
               className="px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm cursor-pointer"
             >
               <option value="All">All Grades</option>
-              <option value="7">Grade 7</option>
-              <option value="8">Grade 8</option>
-              <option value="9">Grade 9</option>
-              <option value="10">Grade 10</option>
-              <option value="11">Grade 11</option>
+              {GRADES.map((g) => (
+                <option key={g} value={g}>
+                  Grade {g}
+                </option>
+              ))}
             </select>
           </div>
         </div>

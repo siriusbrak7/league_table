@@ -24,7 +24,8 @@ export function getTextColor(backgroundColor: string): string {
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
   // If background is bright, use dark text; if dark, use white text
-  return luminance > 0.6 ? '#000000' : '#FFFFFF';
+  // Threshold 0.45 ensures high contrast (WCAG AA) on orange, yellow, and light green badges
+  return luminance > 0.45 ? '#000000' : '#FFFFFF';
 }
 
 // Main function: get color for a percentage (0-100)

@@ -16,6 +16,11 @@ export function calculateWeeklyPercentage(
     return null;
   }
 
+  // If the student has no scores recorded for this week, return null
+  if (!test && !classwork && !homework) {
+    return null;
+  }
+
   const testPercent = test?.total && test.total > 0 ? (test.score / test.total) * 100 : 0;
   const classworkPercent =
     classwork?.total && classwork.total > 0 ? (classwork.score / classwork.total) * 100 : 0;

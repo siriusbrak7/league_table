@@ -45,7 +45,7 @@ export default function AdminTokensPage() {
       setError(null);
 
       // Secure 32-character hex token using crypto.randomUUID
-      const newToken = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+      const newToken = crypto.randomUUID().replace(/-/g, '');
 
       const existing = tokens[grade];
 

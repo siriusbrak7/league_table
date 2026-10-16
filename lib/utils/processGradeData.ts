@@ -69,10 +69,7 @@ export function processGradeData(
     }
 
     const hasData = weeklyScores.some(
-      (w) =>
-        w.configuredCategories.test ||
-        w.configuredCategories.classwork ||
-        w.configuredCategories.homework
+      (w) => w.test !== undefined || w.classwork !== undefined || w.homework !== undefined
     );
 
     return {

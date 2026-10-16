@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { GRADES } from '@/lib/config';
 import type { Student } from '@/types';
 
 interface StudentFormProps {
@@ -17,8 +18,9 @@ export function StudentForm({
   isLoading = false,
 }: StudentFormProps) {
   const [name, setName] = useState(initialData?.name ?? '');
-  const [grade, setGrade] = useState(initialData?.grade ?? '7');
+  const [grade, setGrade] = useState(initialData?.grade ?? (GRADES[0] || '7'));
   const [error, setError] = useState<string | null>(null);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +36,7 @@ export function StudentForm({
       });
       if (!initialData) {
         setName('');
-        setGrade('7');
+        setGrade(GRADES[0] || '7');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save student');
@@ -79,11 +81,11 @@ export function StudentForm({
             onChange={(e) => setGrade(e.target.value)}
             className="mt-1 block w-full px-4 py-3 border-2 border-gray-400 rounded-md shadow-sm text-gray-900 text-base font-medium bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
           >
-            <option value="7" className="text-gray-900 bg-white">Grade 7</option>
-            <option value="8" className="text-gray-900 bg-white">Grade 8</option>
-            <option value="9" className="text-gray-900 bg-white">Grade 9</option>
-            <option value="10" className="text-gray-900 bg-white">Grade 10</option>
-            <option value="11" className="text-gray-900 bg-white">Grade 11</option>
+            {GRADES.map((g) => (
+              <option key={g} value={g} className="text-gray-900 bg-white">
+                Grade {g}
+              </option>
+            ))}
           </select>
         </div>
       </div>
