@@ -39,20 +39,20 @@ export default function AdminTokensPage() {
     fetchTokens();
   }, [supabase]);
 
-  const generateTokenForGrade = async (grade: string) => {
+  const generateCodeForGrade = async (grade: string) => {
     try {
       setUpdatingGrade(grade);
       setError(null);
 
-      // Secure 32-character hex token using crypto.randomUUID
-      const newToken = crypto.randomUUID().replace(/-/g, '');
+      // Derive a lowercase, alphanumeric four-character code from a UUID.
+      const newCode = crypto.randomUUID().replace(/-/g, '').slice(0, 4).toLowerCase();
 
       const existing = tokens[grade];
 
       if (existing) {
         const { data, error } = await supabase
           .from('grade_tokens')
-          .update({ token: newToken, updated_at: new Date().toISOString() })
+          .update({ code: newCode, updated_at: new Date().toISOString() })
           .eq('grade', grade)
           .select()
           .single();
@@ -62,7 +62,7 @@ export default function AdminTokensPage() {
       } else {
         const { data, error } = await supabase
           .from('grade_tokens')
-          .insert([{ grade, token: newToken }])
+          .insert([{ grade, token: crypto.randomUUID().replace(/-/g, ''), code: newCode }])
           .select()
           .single();
 
@@ -70,7 +70,7 @@ export default function AdminTokensPage() {
         setTokens((prev) => ({ ...prev, [grade]: data }));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate token');
+      setError(err instanceof Error ? err.message : 'Failed to generate code');
     } finally {
       setUpdatingGrade(null);
     }
@@ -94,7 +94,7 @@ export default function AdminTokensPage() {
         <div className="mt-4 bg-amber-50 border border-amber-300 rounded-lg p-4 text-amber-800 text-sm flex items-start gap-3">
           <span className="text-lg leading-none">⚠️</span>
           <div>
-            <span className="font-bold">Important Warning:</span> Regenerating a token will immediately break the old link for all students using it.
+            <span className="font-bold">Important Warning:</span> Regenerating a code will immediately break the old link for all students using it.
           </div>
         </div>
       </div>
@@ -113,8 +113,8 @@ export default function AdminTokensPage() {
         <div className="space-y-4">
           {GRADES.map((grade) => {
             const tokenRecord = tokens[grade];
-            const hasToken = Boolean(tokenRecord?.token);
-            const fullUrl = hasToken ? `${baseUrl}/league/${tokenRecord.token}` : '';
+            const hasCode = Boolean(tokenRecord?.code);
+            const fullUrl = hasCode ? `${baseUrl}/league/grade-${grade}-${tokenRecord.code}` : '';
 
             return (
               <div
@@ -124,20 +124,25 @@ export default function AdminTokensPage() {
                 <div className="space-y-1 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-bold text-gray-900">Grade {grade}</span>
-                    {hasToken ? (
+                    {hasCode ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
-                        Active Token
+                        Active Code
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600">
-                        No Token Yet
+                        No Code Yet
                       </span>
                     )}
                   </div>
 
-                  {hasToken ? (
-                    <div className="font-mono text-xs text-blue-700 bg-blue-50 border border-blue-200 px-3 py-2 rounded break-all max-w-2xl select-all">
-                      {fullUrl}
+                  {hasCode ? (
+                    <div className="font-mono text-xs text-blue-700 bg-blue-50 border border-blue-200 px-3 py-2 rounded break-all max-w-2xl">
+                      <>
+                        {fullUrl}
+                        <p className="mt-2 font-sans text-gray-600">
+                          Share this URL with Grade {grade} students. Regenerate anytime to invalidate the old link.
+                        </p>
+                      </>
                     </div>
                   ) : (
                     <p className="text-xs text-gray-500 italic">No public access URL generated for this grade.</p>
@@ -145,7 +150,7 @@ export default function AdminTokensPage() {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  {hasToken && (
+                  {hasCode && (
                     <button
                       onClick={() => copyToClipboard(grade, fullUrl)}
                       className="px-4 py-2 bg-gray-100 text-gray-800 font-semibold text-sm rounded-lg hover:bg-gray-200 border border-gray-300 transition cursor-pointer"
@@ -155,19 +160,19 @@ export default function AdminTokensPage() {
                   )}
 
                   <button
-                    onClick={() => generateTokenForGrade(grade)}
+                    onClick={() => generateCodeForGrade(grade)}
                     disabled={updatingGrade === grade}
                     className={`px-4 py-2 font-semibold text-sm rounded-lg text-white transition cursor-pointer shadow-sm ${
-                      hasToken
+                      hasCode
                         ? 'bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400'
                         : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400'
                     }`}
                   >
                     {updatingGrade === grade
                       ? 'Generating...'
-                      : hasToken
-                      ? 'Regenerate Token'
-                      : 'Generate Token'}
+                      : hasCode
+                      ? 'Regenerate Code'
+                      : 'Generate Code'}
                   </button>
                 </div>
               </div>

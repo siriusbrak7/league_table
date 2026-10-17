@@ -75,6 +75,7 @@ export interface GradeToken {
   id: string;
   grade: string;
   token: string;
+  code: string;
   created_at: string;
   updated_at: string;
 }
