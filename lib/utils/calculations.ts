@@ -33,7 +33,7 @@ export function calculateWeeklyPercentage(
   );
 }
 
-// Calculate overall weighted percentage for a student across all weeks
+// Calculate the term percentage from all configured category weights across all weeks.
 export function calculateOverallPercentage(
   weeklyScores: {
     week: number;
@@ -43,27 +43,28 @@ export function calculateOverallPercentage(
     homework?: { score: number; total: number };
   }[]
 ): number {
-  const weeklyPercentages: number[] = [];
+  const categoryWeights = {
+    test: 0.5,
+    classwork: 0.3,
+    homework: 0.2,
+  } as const;
+  let totalWeightedScore = 0;
+  let totalActiveWeight = 0;
 
   for (const week of weeklyScores) {
-    const weeklyPercent = calculateWeeklyPercentage(
-      week.configuredCategories,
-      week.test,
-      week.classwork,
-      week.homework
-    );
-    if (weeklyPercent !== null) {
-      weeklyPercentages.push(weeklyPercent);
+    for (const category of ['test', 'classwork', 'homework'] as const) {
+      if (!week.configuredCategories[category]) continue;
+
+      const weight = categoryWeights[category];
+      const score = week[category];
+      const percentage = score && score.total > 0 ? (score.score / score.total) * 100 : 0;
+
+      totalWeightedScore += percentage * weight;
+      totalActiveWeight += weight;
     }
   }
 
-  if (weeklyPercentages.length === 0) {
-    return 0;
-  }
-
-  // Average of all weekly percentages with academic data
-  const sum = weeklyPercentages.reduce((acc, curr) => acc + curr, 0);
-  return sum / weeklyPercentages.length;
+  return totalActiveWeight > 0 ? totalWeightedScore / totalActiveWeight : 0;
 }
 
 // Calculate behavior average

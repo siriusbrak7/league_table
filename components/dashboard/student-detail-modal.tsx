@@ -286,14 +286,29 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
                       <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Test (50%)</th>
                       <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Classwork (30%)</th>
                       <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Homework (20%)</th>
-                      <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Conduct</th>
-                      <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Weekly %</th>
+                      <th className="border-l-2 border-[var(--border-2)] px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:border-gray-400 print:text-black">Conduct</th>
+                      <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">
+                        <span className="block">Weekly %</span>
+                        <span className="block text-[9px] font-normal normal-case tracking-normal">Academic only</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)] print:divide-gray-200">
                     {weeklyRows.map((row) => {
                       const hasWeeklyData = row.weeklyPercentage !== null;
                       const { background, text } = getPercentageColors(row.weeklyPercentage ?? 0, hasWeeklyData);
+                      const includedCategories = [
+                        row.test ? 'Test' : null,
+                        row.classwork ? 'CW' : null,
+                        row.homework ? 'HW' : null,
+                      ].filter((category): category is string => category !== null);
+                      const weeklyDescription = includedCategories.length === 3
+                        ? 'All'
+                        : includedCategories.length === 1 && includedCategories[0] === 'Test'
+                          ? 'Test only'
+                          : includedCategories.length > 0
+                            ? includedCategories.join(' + ')
+                            : 'No scores';
                       return (
                         <tr key={row.week} className="hover:bg-[var(--surface-2)] transition-colors print:odd:bg-white print:even:bg-gray-50">
                           <td className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-2)] print:text-black">Week {row.week}</td>
@@ -306,16 +321,24 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
                           <td className="px-4 py-3 text-center font-mono text-xs text-[var(--text-1)] print:text-black">
                             {row.homework ? `${row.homework.score}/${row.homework.total}` : '—'}
                           </td>
-                          <td className="px-4 py-3 text-center font-mono text-xs text-[var(--text-1)] print:text-black">
+                          <td className="border-l-2 border-[var(--border-2)] px-4 py-3 text-center font-mono text-xs text-[var(--text-1)] print:border-gray-400 print:text-black">
                             {row.behavior !== undefined ? row.behavior : '—'}
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            <span
-                              className="font-mono text-xs font-bold px-2 py-0.5 rounded-md inline-block"
-                              style={{ backgroundColor: background, color: text }}
-                            >
-                              {hasWeeklyData ? `${row.weeklyPercentage!.toFixed(1)}%` : '—'}
-                            </span>
+                          <td className="px-4 py-2 text-right">
+                            <div className="flex flex-col items-end gap-1" title={`Weekly academic percentage: ${weeklyDescription}`}>
+                              <span
+                                className="inline-flex min-w-[58px] justify-center rounded-md px-2 py-1 font-mono text-xs font-bold"
+                                style={{
+                                  backgroundColor: hasWeeklyData ? background : 'var(--surface-3)',
+                                  color: hasWeeklyData ? text : 'var(--text-2)',
+                                }}
+                              >
+                                {hasWeeklyData ? `${row.weeklyPercentage!.toFixed(1)}%` : '—'}
+                              </span>
+                              <span className="text-[9px] leading-tight text-[var(--text-3)]">
+                                {`(${weeklyDescription})`}
+                              </span>
+                            </div>
                           </td>
                         </tr>
                       );

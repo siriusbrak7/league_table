@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Plus, Filter, Users, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Filter, Users, RefreshCw } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { StudentForm } from '@/components/students/student-form';
 import { StudentList } from '@/components/students/student-list';
@@ -20,29 +20,38 @@ export default function StudentsPage() {
 
   const supabase = useMemo(() => createClient(), []);
 
-  const loadStudents = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await supabase
-        .from('students')
-        .select('*')
-        .order('grade')
-        .order('name');
-
-      if (fetchError) throw fetchError;
-      setStudents(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load students');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
-
   useEffect(() => {
-    loadStudents();
-  }, [loadStudents, refreshTrigger]);
+    let cancelled = false;
+
+    async function fetchStudents() {
+      try {
+        let query = supabase.from('students').select('*').order('grade').order('name');
+
+        if (gradeFilter !== 'All') {
+          query = query.eq('grade', gradeFilter);
+        }
+
+        const { data, error: fetchError } = await query;
+        if (fetchError) throw fetchError;
+
+        if (!cancelled) {
+          setStudents(data || []);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load students');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void fetchStudents();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, gradeFilter, refreshTrigger]);
 
   // Client-side filtering ensures instant response and eliminates any type mismatch issues
   const visibleStudents = useMemo(() => {
@@ -125,7 +134,10 @@ export default function StudentsPage() {
             Total Enrolled: <strong className="text-[var(--text-1)] font-semibold">{students.length}</strong>
           </div>
           <button
-            onClick={() => setRefreshTrigger((p) => p + 1)}
+            onClick={() => {
+              setLoading(true);
+              setRefreshTrigger((p) => p + 1);
+            }}
             disabled={loading}
             className="p-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors cursor-pointer"
             title="Refresh student list"
@@ -177,7 +189,10 @@ export default function StudentsPage() {
             </span>
             <select
               value={gradeFilter}
-              onChange={(e) => setGradeFilter(e.target.value)}
+              onChange={(e) => {
+                setLoading(true);
+                setGradeFilter(e.target.value);
+              }}
               className="px-3 py-2 bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-1)] rounded-lg text-sm focus:outline-none focus:border-[var(--gold)] cursor-pointer transition-colors"
             >
               <option value="All">All Grades</option>
@@ -191,6 +206,7 @@ export default function StudentsPage() {
             {hasActiveFilters && (
               <button
                 onClick={() => {
+                  setLoading(true);
                   setGradeFilter('All');
                   setNameSearch('');
                 }}

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { CURRENT_TERM, CURRENT_YEAR } from '@/lib/config';
 import { processGradeData } from '@/lib/utils/processGradeData';
 import { getPercentageColors } from '@/lib/utils/colors';
-import { Trophy, Award, Medal, ShieldAlert, Sparkles } from 'lucide-react';
+import { Trophy, Award, ShieldAlert } from 'lucide-react';
 import type { AcademicScore, BehaviorScore, Student, WeekConfig } from '@/types';
 
 interface LeagueData {
