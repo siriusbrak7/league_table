@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="100%" stop-color="#060911" />
+    </linearGradient>
+
+    <!-- Border Ring Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+
+    <!-- Orbit 1 Gradient -->
+    <linearGradient id="orbit1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Orbit 2 Gradient -->
+    <linearGradient id="orbit2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#818cf8" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Orbit 3 Gradient -->
+    <linearGradient id="orbit3" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- Core Glow -->
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="35%" stop-color="#38bdf8" />
+      <stop offset="70%" stop-color="#6366f1" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Gold Accent Star Glow -->
+    <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background Base Container -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="2.5" />
+
+  <!-- Subtle Inner Ambient Mesh Glow -->
+  <circle cx="32" cy="32" r="18" fill="url(#coreGlow)" opacity="0.35" />
+
+  <!-- Atomic Orbital Ellipses -->
+  <!-- Orbit 1: Tilted 60 deg -->
+  <g transform="translate(32, 32) rotate(60)">
+    <ellipse cx="0" cy="0" rx="22" ry="7.5" fill="none" stroke="url(#orbit1)" stroke-width="2" />
+    <!-- Electron particle 1 -->
+    <circle cx="21" cy="-2.5" r="2.2" fill="#38bdf8" />
+    <circle cx="21" cy="-2.5" r="1.2" fill="#ffffff" />
+  </g>
+
+  <!-- Orbit 2: Tilted -60 deg -->
+  <g transform="translate(32, 32) rotate(-60)">
+    <ellipse cx="0" cy="0" rx="22" ry="7.5" fill="none" stroke="url(#orbit2)" stroke-width="2" />
+    <!-- Electron particle 2 -->
+    <circle cx="-19" cy="3.5" r="2.2" fill="#06b6d4" />
+    <circle cx="-19" cy="3.5" r="1.2" fill="#ffffff" />
+  </g>
+
+  <!-- Orbit 3: Horizontal 0 deg -->
+  <g transform="translate(32, 32)">
+    <ellipse cx="0" cy="0" rx="22" ry="7.5" fill="none" stroke="url(#orbit3)" stroke-width="2" />
+    <!-- Electron particle 3 -->
+    <circle cx="0" cy="7.5" r="2.2" fill="#60a5fa" />
+    <circle cx="0" cy="7.5" r="1.2" fill="#ffffff" />
+  </g>
+
+  <!-- Nucleus & Quantum Energy Core -->
+  <circle cx="32" cy="32" r="6.5" fill="url(#coreGlow)" />
+  <circle cx="32" cy="32" r="3.2" fill="#ffffff" />
+
+  <!-- Trophy Star Accent in the Nucleus (Physics + League Champion) -->
+  <polygon points="32,27.5 33.2,30.8 36.5,31.2 34,33.3 34.8,36.5 32,34.8 29.2,36.5 30,33.3 27.5,31.2 30.8,30.8" fill="#fbbf24" opacity="0.9" />
+</svg>

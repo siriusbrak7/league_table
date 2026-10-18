@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { UserCheck, UserPlus, X, AlertCircle } from 'lucide-react';
 import { GRADES } from '@/lib/config';
 import type { Student } from '@/types';
 
@@ -21,68 +22,111 @@ export function StudentForm({
   const [grade, setGrade] = useState(initialData?.grade ?? (GRADES[0] || '7'));
   const [error, setError] = useState<string | null>(null);
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Please enter a student name');
+      setError('Student name is required');
       return;
     }
     setError(null);
     try {
-      await onSubmit({
-        name: name.trim(),
-        grade,
-      });
+      await onSubmit({ name: name.trim(), grade });
       if (!initialData) {
         setName('');
         setGrade(GRADES[0] || '7');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save student');
+      setError(err instanceof Error ? err.message : 'Failed to save student profile');
     }
   };
 
+  const isEditing = Boolean(initialData);
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 mb-8">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        {initialData ? 'Edit Student' : 'Add New Student'}
-      </h3>
+    <form
+      onSubmit={handleSubmit}
+      className={`rounded-xl border transition-all p-5 sm:p-6 ${
+        isEditing
+          ? 'bg-[var(--surface-2)] border-[var(--gold)]/60 shadow-lg shadow-[var(--gold-glow)]'
+          : 'bg-[var(--surface)] border-[var(--border)]'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-[var(--border)]">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isEditing
+                ? 'bg-[var(--gold-dim)] text-[var(--gold)]'
+                : 'bg-[var(--surface-2)] text-[var(--text-2)]'
+            }`}
+          >
+            {isEditing ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-[var(--text-1)]">
+              {isEditing ? 'Edit Student Profile' : 'Register New Student'}
+            </h3>
+            {isEditing && (
+              <p className="text-xs text-[var(--gold)] font-medium">
+                Editing: {initialData?.name} (Grade {initialData?.grade})
+              </p>
+            )}
+          </div>
+        </div>
+
+        {isEditing && onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-xs text-[var(--text-2)] hover:text-[var(--text-1)] flex items-center gap-1 px-2.5 py-1 rounded bg-[var(--surface-3)] hover:bg-[var(--border-2)] transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+            Cancel Edit
+          </button>
+        )}
+      </div>
 
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
-          {error}
+        <div className="mb-4 text-xs text-red-300 border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 rounded-lg flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+          <span>{error}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="student-name" className="block text-sm font-semibold text-gray-800 mb-1">
-            Name <span className="text-red-500">*</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="sm:col-span-2">
+          <label
+            htmlFor="student-name"
+            className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] mb-1.5"
+          >
+            Full Name <span className="text-red-400">*</span>
           </label>
           <input
             id="student-name"
             type="text"
             required
-            placeholder="e.g. John Doe"
+            placeholder="e.g. Isaac Newton"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full px-4 py-3 border-2 border-gray-400 rounded-md shadow-sm text-gray-900 text-base font-medium placeholder-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3.5 py-2.5 bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-1)] placeholder-[var(--text-3)] rounded-lg text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-colors"
           />
         </div>
 
         <div>
-          <label htmlFor="student-grade" className="block text-sm font-semibold text-gray-800 mb-1">
-            Grade Level <span className="text-red-500">*</span>
+          <label
+            htmlFor="student-grade"
+            className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] mb-1.5"
+          >
+            Grade Level <span className="text-red-400">*</span>
           </label>
           <select
             id="student-grade"
             value={grade}
             onChange={(e) => setGrade(e.target.value)}
-            className="mt-1 block w-full px-4 py-3 border-2 border-gray-400 rounded-md shadow-sm text-gray-900 text-base font-medium bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+            className="w-full px-3.5 py-2.5 bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-1)] rounded-lg text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-colors cursor-pointer"
           >
             {GRADES.map((g) => (
-              <option key={g} value={g} className="text-gray-900 bg-white">
+              <option key={g} value={g}>
                 Grade {g}
               </option>
             ))}
@@ -90,21 +134,20 @@ export function StudentForm({
         </div>
       </div>
 
-      <div className="mt-6 flex items-center gap-4">
+      <div className="mt-5 flex items-center gap-3">
         <button
           type="submit"
           disabled={isLoading}
-          className="py-3 px-6 border border-transparent rounded-md shadow-sm text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50 cursor-pointer"
+          className="px-5 py-2.5 bg-[var(--gold)] hover:bg-[#e0a520] active:scale-[0.98] text-black text-xs font-bold rounded-lg tracking-wide shadow transition-all disabled:opacity-40 cursor-pointer"
         >
-          {isLoading ? 'Saving...' : initialData ? 'Update Student' : 'Add Student'}
+          {isLoading ? 'Saving...' : isEditing ? 'Update Student' : 'Add Student'}
         </button>
-
-        {initialData && onCancel && (
+        {isEditing && onCancel && (
           <button
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="py-3 px-6 border-2 border-gray-400 rounded-md shadow-sm text-base font-semibold text-gray-800 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition cursor-pointer"
+            className="px-4 py-2.5 bg-transparent border border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface-2)] text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
             Cancel
           </button>

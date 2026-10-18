@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { getPercentageColors } from '@/lib/utils/colors';
 import type { GradeProcessedData } from '@/lib/utils/processGradeData';
 import type { Student } from '@/types';
 import StudentDetailModal from './student-detail-modal';
@@ -12,140 +11,173 @@ interface DashboardTablesProps {
 
 export default function DashboardTables({ gradeSections }: DashboardTablesProps) {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState<string>('All');
 
   if (gradeSections.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-        No students found. Add students to view league tables.
+      <div className="card" style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-3)' }}>
+        <p style={{ fontSize: '0.85rem' }}>No standings yet. Add students and enter scores to generate tables.</p>
       </div>
     );
   }
 
+  const filteredSections =
+    selectedGrade === 'All'
+      ? gradeSections
+      : gradeSections.filter((s) => String(s.grade) === selectedGrade);
+
+  const getRankLabel = (rank: number | null, hasData: boolean) => {
+    if (!hasData || rank === null) {
+      return <span style={{ color: 'var(--text-3)', fontFamily: 'var(--font-geist-mono)', fontSize: '0.8rem' }}>—</span>;
+    }
+    if (rank === 1) return <span className="rank-gold"   style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 700 }}>🥇 {rank}</span>;
+    if (rank === 2) return <span className="rank-silver" style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 700 }}>🥈 {rank}</span>;
+    if (rank === 3) return <span className="rank-bronze" style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 700 }}>🥉 {rank}</span>;
+    return <span style={{ color: 'var(--text-2)', fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 600 }}>{rank}</span>;
+  };
+
+  const getScoreStyle = (score: number, hasData: boolean) => {
+    if (!hasData) return { background: '#e7e6e0', color: '#737a7d' };
+    if (score >= 90) return { background: '#d8eddf', color: '#17643a' };
+    if (score >= 80) return { background: '#e1ebd8', color: '#49642d' };
+    if (score >= 70) return { background: '#f0e5b9', color: '#745c12' };
+    if (score >= 60) return { background: '#f3d5b5', color: '#854619' };
+    return { background: '#efd0cc', color: '#8e302b' };
+  };
+
   return (
-    <>
-      {gradeSections.map((section) => (
-        <div key={section.grade} className="bg-white rounded-lg shadow overflow-hidden mb-10">
-          {/* Grade Section Heading */}
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900">
-              Grade {section.grade} League Table
-            </h3>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+
+      {/* Grade filter tab bar */}
+      <div className="tab-bar">
+        {['All', ...gradeSections.map((s) => String(s.grade))].map((grade) => (
+          <button
+            key={grade}
+            onClick={() => setSelectedGrade(grade)}
+            className={`tab-btn${selectedGrade === grade ? ' active' : ''}`}
+          >
+            {grade === 'All' ? `All (${gradeSections.length})` : `Gr. ${grade}`}
+          </button>
+        ))}
+      </div>
+
+      {/* Grade sections */}
+      {filteredSections.map((section) => (
+        <div key={section.grade} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Section heading */}
+          <div className="section-rule">
+            <h2>Grade {section.grade}</h2>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-3)', fontFamily: 'var(--font-geist-mono)', whiteSpace: 'nowrap' }}>
+              {section.rankedAcademic.length} students
+            </span>
           </div>
 
-          {/* Side-by-side Academic and Behavior Tables */}
-          <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-8">
-            {/* Academic Table */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col">
-              <div className="px-4 py-3 bg-gray-100 border-b border-gray-200">
-                <h4 className="text-base font-semibold text-gray-900">
-                  Academic Performance
-                </h4>
+          {/* Side-by-side tables */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 }}>
+
+            {/* Academic Mastery */}
+            <div className="card" style={{ overflow: 'hidden' }}>
+              <div className="card-header">
+                <span className="card-header-title">Academic Mastery</span>
+                <span style={{ fontSize: '0.62rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Weighted %
+                </span>
               </div>
-              <div className="overflow-x-auto flex-1">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Rank
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Student
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Weighted %
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {section.rankedAcademic.map((item) => {
-                      const { background, text } = getPercentageColors(item.weightedPercentage, item.hasData);
-                      return (
-                        <tr
-                          key={item.student.id}
-                          onClick={() => setSelectedStudent(item.student)}
-                          className="hover:bg-gray-50 cursor-pointer transition-colors"
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-700">
-                            {item.hasData && item.rank !== null ? item.rank : '—'}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {item.student.name}
-                          </td>
-                          <td
-                            className="px-4 py-3 whitespace-nowrap text-sm font-bold text-right"
-                            style={{ backgroundColor: background, color: text }}
+              <table className="league-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 50, textAlign: 'left', paddingLeft: 14 }}>#</th>
+                    <th style={{ textAlign: 'left', paddingLeft: 14 }}>Name</th>
+                    <th style={{ textAlign: 'right', paddingRight: 14, width: 80 }}>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {section.rankedAcademic.map((item) => {
+                    const scoreStyle = getScoreStyle(item.weightedPercentage, item.hasData);
+                    return (
+                      <tr
+                        key={item.student.id}
+                        className={item.rank === 1 ? 'podium-first' : item.rank === 2 ? 'podium-second' : item.rank === 3 ? 'podium-third' : ''}
+                        onClick={() => setSelectedStudent(item.student)}
+                      >
+                        <td style={{ paddingLeft: 14, paddingTop: 10, paddingBottom: 10 }}>
+                          {getRankLabel(item.rank, item.hasData)}
+                        </td>
+                        <td style={{ paddingLeft: 14, paddingTop: 10, paddingBottom: 10, fontSize: '0.85rem', color: 'var(--text-1)', fontWeight: 500 }}>
+                          {item.student.name}
+                        </td>
+                        <td style={{ paddingRight: 14, textAlign: 'right' }}>
+                          <span
+                            className="score-pill"
+                            style={{ backgroundColor: scoreStyle.background, color: scoreStyle.color }}
                           >
                             {item.hasData ? `${item.weightedPercentage.toFixed(1)}%` : '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
-            {/* Behavior Table */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col">
-              <div className="px-4 py-3 bg-gray-100 border-b border-gray-200">
-                <h4 className="text-base font-semibold text-gray-900">
-                  Behavior Performance
-                </h4>
+            {/* Conduct */}
+            <div className="card" style={{ overflow: 'hidden' }}>
+              <div className="card-header">
+                <span className="card-header-title">Conduct</span>
+                <span style={{ fontSize: '0.62rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Average %
+                </span>
               </div>
-              <div className="overflow-x-auto flex-1">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Rank
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Student
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Behavior Average
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {section.rankedBehavior.map((item) => {
-                      const { background, text } = getPercentageColors(item.average, item.hasData);
-                      return (
-                        <tr
-                          key={item.student.id}
-                          onClick={() => setSelectedStudent(item.student)}
-                          className="hover:bg-gray-50 cursor-pointer transition-colors"
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-700">
-                            {item.hasData && item.rank !== null ? item.rank : '—'}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {item.student.name}
-                          </td>
-                          <td
-                            className="px-4 py-3 whitespace-nowrap text-sm font-bold text-right"
-                            style={{ backgroundColor: background, color: text }}
+              <table className="league-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 50, textAlign: 'left', paddingLeft: 14 }}>#</th>
+                    <th style={{ textAlign: 'left', paddingLeft: 14 }}>Name</th>
+                    <th style={{ textAlign: 'right', paddingRight: 14, width: 80 }}>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {section.rankedBehavior.map((item) => {
+                    const scoreStyle = getScoreStyle(item.average, item.hasData);
+                    return (
+                      <tr
+                        key={item.student.id}
+                        className={item.rank === 1 ? 'podium-first' : item.rank === 2 ? 'podium-second' : item.rank === 3 ? 'podium-third' : ''}
+                        onClick={() => setSelectedStudent(item.student)}
+                      >
+                        <td style={{ paddingLeft: 14, paddingTop: 10, paddingBottom: 10 }}>
+                          {getRankLabel(item.rank, item.hasData)}
+                        </td>
+                        <td style={{ paddingLeft: 14, paddingTop: 10, paddingBottom: 10, fontSize: '0.85rem', color: 'var(--text-1)', fontWeight: 500 }}>
+                          {item.student.name}
+                        </td>
+                        <td style={{ paddingRight: 14, textAlign: 'right' }}>
+                          <span
+                            className="score-pill"
+                            style={{ backgroundColor: scoreStyle.background, color: scoreStyle.color }}
                           >
                             {item.hasData ? `${item.average.toFixed(1)}%` : '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
+
           </div>
         </div>
       ))}
 
-      {/* Student Detail Modal */}
       {selectedStudent && (
         <StudentDetailModal
           student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
         />
       )}
-    </>
+    </div>
   );
 }

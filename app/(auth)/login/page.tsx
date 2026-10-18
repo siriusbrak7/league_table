@@ -5,30 +5,20 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
       const supabase = createClient();
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-        return;
-      }
-
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { setError(error.message); return; }
       router.push('/dashboard');
       router.refresh();
     } finally {
@@ -36,16 +26,22 @@ export default function LoginPage() {
     }
   };
 
-
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-        Physics League Table
-      </h1>
-      
+    <div className="border border-[#1f1f27] bg-[#111115] rounded p-8 sm:p-10">
+      {/* Header */}
+      <div className="mb-8">
+        <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#55555f] mb-2">
+          Physics League
+        </p>
+        <h1 className="text-xl font-black text-white tracking-tight">
+          Sign In
+        </h1>
+        <p className="text-xs text-[#8b8b9a] mt-1">Teacher & Administrator Portal</p>
+      </div>
+
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="email" className="block text-[10px] font-mono uppercase tracking-widest text-[#55555f] mb-1.5">
             Email
           </label>
           <input
@@ -54,13 +50,13 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="admin@school.com"
+            placeholder="teacher@school.com"
+            className="w-full px-3 py-2.5 bg-[#0c0c0e] border border-[#2a2a35] text-[#f0f0f2] placeholder-[#3a3a48] rounded text-sm font-medium focus:outline-none focus:border-amber-500/60 transition-colors"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="password" className="block text-[10px] font-mono uppercase tracking-widest text-[#55555f] mb-1.5">
             Password
           </label>
           <input
@@ -69,13 +65,13 @@ export default function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             placeholder="••••••••"
+            className="w-full px-3 py-2.5 bg-[#0c0c0e] border border-[#2a2a35] text-[#f0f0f2] placeholder-[#3a3a48] rounded text-sm font-medium focus:outline-none focus:border-amber-500/60 transition-colors"
           />
         </div>
 
         {error && (
-          <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+          <div className="text-xs text-red-400 border border-red-900/50 bg-red-950/20 px-3 py-2 rounded">
             {error}
           </div>
         )}
@@ -83,11 +79,15 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold rounded tracking-wide transition-colors disabled:opacity-40 cursor-pointer mt-2"
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
+
+      <div className="mt-6 pt-4 border-t border-[#1f1f27] text-center text-[10px] font-mono text-[#3a3a48] uppercase tracking-widest">
+        Protected system
+      </div>
     </div>
   );
 }

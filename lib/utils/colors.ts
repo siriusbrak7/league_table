@@ -14,7 +14,7 @@ function interpolateColor(
 export function getTextColor(backgroundColor: string): string {
   // Parse the RGB values
   const match = backgroundColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  if (!match) return '#000000';
+  if (!match) return '#ffffff';
 
   const r = parseInt(match[1]);
   const g = parseInt(match[2]);
@@ -23,9 +23,8 @@ export function getTextColor(backgroundColor: string): string {
   // Calculate luminance
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
-  // If background is bright, use dark text; if dark, use white text
-  // Threshold 0.45 ensures high contrast (WCAG AA) on orange, yellow, and light green badges
-  return luminance > 0.45 ? '#000000' : '#FFFFFF';
+  // Threshold ensures high contrast (WCAG AA) on amber, yellow, and light green badges
+  return luminance > 0.52 ? '#0f172a' : '#ffffff';
 }
 
 // Main function: get color for a percentage (0-100)
@@ -33,45 +32,41 @@ export function getPercentageColor(percentage: number): string {
   // Clamp percentage to 0-100
   const value = Math.max(0, Math.min(100, percentage));
 
-  // Define color anchor points
-  const RED: [number, number, number] = [255, 0, 0];       // 0-50%
-  const YELLOW: [number, number, number] = [255, 255, 0];  // 70%
-  const GREEN: [number, number, number] = [0, 200, 0];     // 85%
-  const DEEP_GREEN: [number, number, number] = [0, 150, 0]; // 100%
+  // Refined modern color anchor points (prevents eye strain, looks premium)
+  const ROSE: [number, number, number] = [225, 45, 65];      // 0-50%: Rich Rose
+  const AMBER: [number, number, number] = [245, 158, 11];    // 70%: Warm Amber/Gold
+  const EMERALD: [number, number, number] = [16, 185, 129];  // 85%: Vibrant Emerald
+  const TEAL_GREEN: [number, number, number] = [5, 150, 105];// 100%: Deep Emerald/Teal
 
   let color: string;
 
   if (value <= 50) {
-    // 0-50: Pure Red
-    color = `rgb(${RED[0]}, ${RED[1]}, ${RED[2]})`;
+    color = `rgb(${ROSE[0]}, ${ROSE[1]}, ${ROSE[2]})`;
   } else if (value <= 70) {
-    // 50-70: Red to Yellow
     const factor = (value - 50) / 20;
-    color = interpolateColor(RED, YELLOW, factor);
+    color = interpolateColor(ROSE, AMBER, factor);
   } else if (value <= 85) {
-    // 70-85: Yellow to Green
     const factor = (value - 70) / 15;
-    color = interpolateColor(YELLOW, GREEN, factor);
+    color = interpolateColor(AMBER, EMERALD, factor);
   } else {
-    // 85-100: Green to Deep Green
     const factor = (value - 85) / 15;
-    color = interpolateColor(GREEN, DEEP_GREEN, factor);
+    color = interpolateColor(EMERALD, TEAL_GREEN, factor);
   }
 
   return color;
 }
 
 // Get background and text color for a percentage
-// Pass hasData=false when the student has no scores yet — renders a neutral gray
-// instead of bright red so that "not entered" is visually distinct from "scored 0%".
+// Pass hasData=false when the student has no scores yet — renders a neutral tone
 export function getPercentageColors(
   percentage: number,
   hasData = true
 ): { background: string; text: string } {
   if (!hasData) {
-    return { background: 'rgb(229, 231, 235)', text: '#374151' };
+    return { background: 'rgba(51, 65, 85, 0.45)', text: '#94a3b8' };
   }
   const background = getPercentageColor(percentage);
   const text = getTextColor(background);
   return { background, text };
-}
+}
+

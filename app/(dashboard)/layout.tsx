@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
+import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 
 export default async function DashboardLayout({
   children,
@@ -17,68 +17,17 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">
-                Physics League Table
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/entry"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Data Entry
-              </Link>
-              <Link
-                href="/print"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Print View
-              </Link>
-              <Link
-                href="/students"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Students
-              </Link>
-              <Link
-                href="/admin/tokens"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Student Links
-              </Link>
-              <form
-                action={async () => {
-                  'use server';
-                  const supabase = await createClient();
-                  await supabase.auth.signOut();
-                  redirect('/login');
-                }}
-              >
-                <button
-                  type="submit"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium cursor-pointer"
-                >
-                  Sign Out
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </nav>
+  const handleSignOut = async () => {
+    'use server';
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect('/login');
+  };
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  return (
+    <div className="min-h-screen flex flex-col bg-[var(--bg)] text-[var(--text-1)]">
+      <DashboardNav onSignOut={handleSignOut} />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
     </div>

@@ -656,18 +656,18 @@ export function EntryForm({ students }: EntryFormProps) {
       (studentScore.behavior < 0 || studentScore.behavior > 100);
 
     return (
-      <tr key={student.id} className="hover:bg-blue-50/60 transition-colors">
-        <td className="px-4 py-3 text-sm font-semibold text-gray-950 whitespace-nowrap">
+      <tr key={student.id} className="hover:bg-[#18181e] transition-colors border-b border-[#1f1f27]">
+        <td className="px-4 py-3 text-sm font-medium text-[#f0f0f2] whitespace-nowrap">
           {student.name}
           {selectedGrade === 'All' && (
-            <span className="ml-1.5 text-xs text-gray-500 font-medium">(G{student.grade})</span>
+            <span className="ml-2 font-mono text-xs text-[#55555f]">(G{student.grade})</span>
           )}
         </td>
 
         {/* Test Score */}
         {(selectedGrade === 'All' || enabledCategories.test) && (
-          <td className="px-3 py-3 whitespace-nowrap">
-            <div className="flex items-center">
+          <td className="px-3 py-2.5 whitespace-nowrap">
+            <div className="flex items-center gap-1.5">
               <input
                 type="number"
                 min="0"
@@ -676,13 +676,13 @@ export function EntryForm({ students }: EntryFormProps) {
                 value={studentScore.test !== undefined ? studentScore.test : ''}
                 onChange={(e) => handleScoreChange(student.id, 'test', e.target.value)}
                 disabled={selectedGrade === 'All'}
-                className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                className={`w-20 px-2.5 py-1.5 rounded-sm font-mono text-sm placeholder-[#55555f] focus:outline-none transition-colors ${
                   isTestExceeded
-                    ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-400 bg-white focus:ring-blue-500 focus:border-blue-500'
+                    ? 'border border-rose-500/80 bg-rose-950/20 text-rose-300'
+                    : 'border border-[#2a2a35] bg-[#0c0c0e] text-[#f0f0f2] focus:border-amber-500/60'
                 }`}
               />
-              <span className="ml-1.5 text-gray-600 text-xs font-semibold">
+              <span className="font-mono text-xs text-[#55555f]">
                 / {selectedGrade === 'All' ? '—' : totals.test ?? '—'}
               </span>
             </div>
@@ -691,8 +691,8 @@ export function EntryForm({ students }: EntryFormProps) {
 
         {/* Classwork Score */}
         {(selectedGrade === 'All' || enabledCategories.classwork) && (
-          <td className="px-3 py-3 whitespace-nowrap">
-            <div className="flex items-center">
+          <td className="px-3 py-2.5 whitespace-nowrap">
+            <div className="flex items-center gap-1.5">
               <input
                 type="number"
                 min="0"
@@ -701,13 +701,13 @@ export function EntryForm({ students }: EntryFormProps) {
                 value={studentScore.classwork !== undefined ? studentScore.classwork : ''}
                 onChange={(e) => handleScoreChange(student.id, 'classwork', e.target.value)}
                 disabled={selectedGrade === 'All'}
-                className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                className={`w-20 px-2.5 py-1.5 rounded-sm font-mono text-sm placeholder-[#55555f] focus:outline-none transition-colors ${
                   isClassworkExceeded
-                    ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-400 bg-white focus:ring-blue-500 focus:border-blue-500'
+                    ? 'border border-rose-500/80 bg-rose-950/20 text-rose-300'
+                    : 'border border-[#2a2a35] bg-[#0c0c0e] text-[#f0f0f2] focus:border-amber-500/60'
                 }`}
               />
-              <span className="ml-1.5 text-gray-600 text-xs font-semibold">
+              <span className="font-mono text-xs text-[#55555f]">
                 / {selectedGrade === 'All' ? '—' : totals.classwork ?? '—'}
               </span>
             </div>
@@ -716,8 +716,8 @@ export function EntryForm({ students }: EntryFormProps) {
 
         {/* Homework Score */}
         {(selectedGrade === 'All' || enabledCategories.homework) && (
-          <td className="px-3 py-3 whitespace-nowrap">
-            <div className="flex items-center">
+          <td className="px-3 py-2.5 whitespace-nowrap">
+            <div className="flex items-center gap-1.5">
               <input
                 type="number"
                 min="0"
@@ -726,13 +726,13 @@ export function EntryForm({ students }: EntryFormProps) {
                 value={studentScore.homework !== undefined ? studentScore.homework : ''}
                 onChange={(e) => handleScoreChange(student.id, 'homework', e.target.value)}
                 disabled={selectedGrade === 'All'}
-                className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                className={`w-20 px-2.5 py-1.5 rounded-sm font-mono text-sm placeholder-[#55555f] focus:outline-none transition-colors ${
                   isHomeworkExceeded
-                    ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-400 bg-white focus:ring-blue-500 focus:border-blue-500'
+                    ? 'border border-rose-500/80 bg-rose-950/20 text-rose-300'
+                    : 'border border-[#2a2a35] bg-[#0c0c0e] text-[#f0f0f2] focus:border-amber-500/60'
                 }`}
               />
-              <span className="ml-1.5 text-gray-600 text-xs font-semibold">
+              <span className="font-mono text-xs text-[#55555f]">
                 / {selectedGrade === 'All' ? '—' : totals.homework ?? '—'}
               </span>
             </div>
@@ -740,8 +740,8 @@ export function EntryForm({ students }: EntryFormProps) {
         )}
 
         {/* Behavior Score */}
-        <td className="px-3 py-3 whitespace-nowrap">
-          <div className="flex items-center">
+        <td className="px-3 py-2.5 whitespace-nowrap">
+          <div className="flex items-center gap-1.5">
             <input
               type="number"
               min="0"
@@ -750,13 +750,13 @@ export function EntryForm({ students }: EntryFormProps) {
               value={studentScore.behavior !== undefined ? studentScore.behavior : ''}
               onChange={(e) => handleScoreChange(student.id, 'behavior', e.target.value)}
               disabled={selectedGrade === 'All'}
-              className={`w-20 px-2.5 py-1.5 border-2 rounded-lg text-gray-900 text-sm font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 ${
+              className={`w-20 px-2.5 py-1.5 rounded-sm font-mono text-sm placeholder-[#55555f] focus:outline-none transition-colors ${
                 isBehaviorExceeded
-                  ? 'border-red-600 bg-red-50 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-400 bg-white focus:ring-blue-500 focus:border-blue-500'
+                  ? 'border border-rose-500/80 bg-rose-950/20 text-rose-300'
+                  : 'border border-[#2a2a35] bg-[#0c0c0e] text-[#f0f0f2] focus:border-amber-500/60'
               }`}
             />
-            <span className="ml-1.5 text-gray-600 text-xs font-semibold">/ 100</span>
+            <span className="font-mono text-xs text-[#55555f]">/ 100</span>
           </div>
         </td>
       </tr>
@@ -764,25 +764,27 @@ export function EntryForm({ students }: EntryFormProps) {
   };
 
   const renderTableHead = () => (
-    <thead className="bg-gray-100">
+    <thead className="bg-[#0c0c0e] border-b border-[#1f1f27]">
       <tr>
-        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Student</th>
+        <th className="px-4 py-2.5 text-left font-mono text-[11px] font-semibold uppercase tracking-wider text-[#8b8b9a]">
+          Student
+        </th>
         {(selectedGrade === 'All' || enabledCategories.test) && (
-          <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
+          <th className="px-3 py-2.5 text-left font-mono text-[11px] font-semibold uppercase tracking-wider text-[#8b8b9a]">
             Test ({selectedGrade === 'All' ? '—' : totals.test ?? '—'})
           </th>
         )}
         {(selectedGrade === 'All' || enabledCategories.classwork) && (
-          <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
+          <th className="px-3 py-2.5 text-left font-mono text-[11px] font-semibold uppercase tracking-wider text-[#8b8b9a]">
             Classwork ({selectedGrade === 'All' ? '—' : totals.classwork ?? '—'})
           </th>
         )}
         {(selectedGrade === 'All' || enabledCategories.homework) && (
-          <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
+          <th className="px-3 py-2.5 text-left font-mono text-[11px] font-semibold uppercase tracking-wider text-[#8b8b9a]">
             Homework ({selectedGrade === 'All' ? '—' : totals.homework ?? '—'})
           </th>
         )}
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900">
+        <th className="px-3 py-2.5 text-left font-mono text-[11px] font-semibold uppercase tracking-wider text-[#8b8b9a]">
           Behavior (0–100)
         </th>
       </tr>
@@ -790,22 +792,22 @@ export function EntryForm({ students }: EntryFormProps) {
   );
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Top of Form: Week Dropdown & Grade Filter */}
-      <div className="bg-white rounded-lg shadow p-5 mb-6">
+      <div className="border border-[#1f1f27] bg-[#111115] rounded p-5">
         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
           <div className="flex-1">
-            <label htmlFor="entry-week" className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Week
+            <label htmlFor="entry-week" className="block font-mono text-[11px] uppercase tracking-wider text-[#8b8b9a] mb-1.5">
+              Competition Week
             </label>
             <select
               id="entry-week"
               value={week}
               onChange={(e) => handleWeekChange(Number(e.target.value))}
-              className="w-full px-4 py-2.5 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+              className="w-full px-3.5 py-2 text-[#f0f0f2] font-mono text-sm bg-[#0c0c0e] border border-[#2a2a35] rounded-sm focus:outline-none focus:border-amber-500/60 cursor-pointer"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
-                <option key={w} value={w} className="text-gray-900 bg-white">
+                <option key={w} value={w} className="text-[#f0f0f2] bg-[#0c0c0e]">
                   Week {w}{weeksWithData.has(w) ? ' ✓' : ''}
                 </option>
               ))}
@@ -813,20 +815,20 @@ export function EntryForm({ students }: EntryFormProps) {
           </div>
 
           <div className="flex-1">
-            <label htmlFor="entry-grade-filter" className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Grade Filter
+            <label htmlFor="entry-grade-filter" className="block font-mono text-[11px] uppercase tracking-wider text-[#8b8b9a] mb-1.5">
+              Grade Cohort
             </label>
             <select
               id="entry-grade-filter"
               value={selectedGrade}
               onChange={(e) => handleGradeChange(e.target.value)}
-              className="w-full px-4 py-2.5 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+              className="w-full px-3.5 py-2 text-[#f0f0f2] font-mono text-sm bg-[#0c0c0e] border border-[#2a2a35] rounded-sm focus:outline-none focus:border-amber-500/60 cursor-pointer"
             >
-              <option value="All" className="text-gray-900 bg-white">
+              <option value="All" className="text-[#f0f0f2] bg-[#0c0c0e]">
                 All Grades
               </option>
               {GRADES.map((g) => (
-                <option key={g} value={g} className="text-gray-900 bg-white">
+                <option key={g} value={g} className="text-[#f0f0f2] bg-[#0c0c0e]">
                   Grade {g}
                 </option>
               ))}
@@ -835,24 +837,24 @@ export function EntryForm({ students }: EntryFormProps) {
         </div>
 
         {/* Week Progress Strip */}
-        <div className="mt-5 pt-4 border-t border-gray-200">
-          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-            Week Progress
+        <div className="mt-5 pt-4 border-t border-[#1f1f27]">
+          <label className="block font-mono text-[11px] uppercase tracking-wider text-[#55555f] mb-2.5">
+            Week Navigation
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => {
               const hasData = weeksWithData.has(w);
               const isSelected = w === week;
 
               let pillStyle =
-                'px-3 py-1 text-xs font-semibold rounded-md border transition cursor-pointer flex items-center gap-1.5';
+                'px-3 py-1.5 font-mono text-xs rounded-sm border transition-colors cursor-pointer flex items-center gap-1.5';
               if (isSelected) {
                 pillStyle +=
-                  ' bg-blue-600 text-white border-blue-600 ring-2 ring-blue-500 ring-offset-1 font-bold';
+                  ' bg-amber-400 text-black border-amber-400 font-semibold';
               } else if (hasData) {
-                pillStyle += ' bg-green-100 text-green-800 border-green-300 hover:bg-green-200';
+                pillStyle += ' bg-[#18181e] text-[#f0f0f2] border-[#2a2a35] hover:border-[#3a3a48]';
               } else {
-                pillStyle += ' bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200';
+                pillStyle += ' bg-[#0c0c0e] text-[#8b8b9a] border-[#1f1f27] hover:text-[#f0f0f2] hover:border-[#2a2a35]';
               }
 
               return (
@@ -862,8 +864,8 @@ export function EntryForm({ students }: EntryFormProps) {
                   onClick={() => handleWeekChange(w)}
                   className={pillStyle}
                 >
-                  <span>Week {w}</span>
-                  {hasData && <span>✓</span>}
+                  <span>W{w}</span>
+                  {hasData && <span className={isSelected ? 'text-black' : 'text-amber-400'}>✓</span>}
                 </button>
               );
             })}
@@ -872,26 +874,26 @@ export function EntryForm({ students }: EntryFormProps) {
 
         {/* Overwrite Warning Banner */}
         {weeksWithData.has(week) && (
-          <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-sm font-medium text-yellow-800 flex items-center gap-2">
-            <span className="text-base">⚠️</span>
+          <div className="mt-4 border border-amber-500/30 bg-amber-950/20 rounded-sm p-3 font-mono text-xs text-amber-300 flex items-center gap-2">
+            <span>[!]</span>
             <span>
-              Week {week} already has scores entered{selectedGrade !== 'All' ? ` for Grade ${selectedGrade}` : ''}. Any changes you save will update existing values.
+              Week {week} already has data recorded{selectedGrade !== 'All' ? ` for Grade ${selectedGrade}` : ''}. Saving will update existing entries.
             </span>
           </div>
         )}
       </div>
 
       {/* Category Toggles & Totals Row */}
-      <div className="bg-white rounded-lg shadow p-5 mb-6">
-        <div className="text-sm font-semibold text-gray-800 mb-3 flex items-center justify-between">
-          <span>Academic Categories & Category Totals</span>
-          <span className="text-xs text-gray-500 font-normal">Enable categories and set totals for Week {week}</span>
+      <div className="border border-[#1f1f27] bg-[#111115] rounded p-5">
+        <div className="text-sm font-semibold text-[#f0f0f2] mb-4 flex items-center justify-between">
+          <span>Active Categories & Max Score Limits</span>
+          <span className="font-mono text-xs text-[#55555f]">Week {week} assessment configuration</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Test Toggle & Total */}
-          <div className="p-3.5 border-2 border-gray-300 rounded-lg bg-gray-50/70">
-            <label className="flex items-center gap-2 cursor-pointer font-bold text-sm text-gray-900 mb-2">
+          <div className="p-4 border border-[#1f1f27] bg-[#0c0c0e] rounded-sm">
+            <label className="flex items-center gap-2.5 cursor-pointer font-medium text-sm text-[#f0f0f2] mb-3">
               <input
                 type="checkbox"
                 checked={enabledCategories.test}
@@ -900,16 +902,16 @@ export function EntryForm({ students }: EntryFormProps) {
                   setEnabledCategories((prev) => ({ ...prev, test: e.target.checked }));
                   setHasUnsavedChanges(true);
                 }}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-400 cursor-pointer"
+                className="w-4 h-4 rounded-sm accent-amber-500 cursor-pointer"
               />
-              <span>Test</span>
+              <span>Test (50%)</span>
             </label>
             {selectedGrade === 'All' ? (
-              <p className="text-xs text-gray-500">—</p>
+              <p className="font-mono text-xs text-[#55555f]">—</p>
             ) : enabledCategories.test ? (
               <div>
-                <label htmlFor="total-test" className="block text-xs font-semibold text-gray-700 mb-1">
-                  Test Total
+                <label htmlFor="total-test" className="block font-mono text-[11px] uppercase tracking-wider text-[#8b8b9a] mb-1">
+                  Maximum Points
                 </label>
                 <input
                   id="total-test"
@@ -923,18 +925,17 @@ export function EntryForm({ students }: EntryFormProps) {
                     }));
                     setHasUnsavedChanges(true);
                   }}
-                  className="w-full px-3 py-2 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-1.5 font-mono text-sm text-[#f0f0f2] bg-[#111115] border border-[#2a2a35] rounded-sm focus:outline-none focus:border-amber-500/60"
                 />
-                <p className="mt-1 text-xs text-gray-500">Set total for this assessment.</p>
               </div>
             ) : (
-              <p className="text-xs text-gray-500 italic">Category disabled for Week {week}</p>
+              <p className="font-mono text-xs text-[#55555f] italic">Disabled for Week {week}</p>
             )}
           </div>
 
           {/* Classwork Toggle & Total */}
-          <div className="p-3.5 border-2 border-gray-300 rounded-lg bg-gray-50/70">
-            <label className="flex items-center gap-2 cursor-pointer font-bold text-sm text-gray-900 mb-2">
+          <div className="p-4 border border-[#1f1f27] bg-[#0c0c0e] rounded-sm">
+            <label className="flex items-center gap-2.5 cursor-pointer font-medium text-sm text-[#f0f0f2] mb-3">
               <input
                 type="checkbox"
                 checked={enabledCategories.classwork}
@@ -943,16 +944,16 @@ export function EntryForm({ students }: EntryFormProps) {
                   setEnabledCategories((prev) => ({ ...prev, classwork: e.target.checked }));
                   setHasUnsavedChanges(true);
                 }}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-400 cursor-pointer"
+                className="w-4 h-4 rounded-sm accent-amber-500 cursor-pointer"
               />
-              <span>Classwork</span>
+              <span>Classwork (30%)</span>
             </label>
             {selectedGrade === 'All' ? (
-              <p className="text-xs text-gray-500">—</p>
+              <p className="font-mono text-xs text-[#55555f]">—</p>
             ) : enabledCategories.classwork ? (
               <div>
-                <label htmlFor="total-classwork" className="block text-xs font-semibold text-gray-700 mb-1">
-                  Classwork Total
+                <label htmlFor="total-classwork" className="block font-mono text-[11px] uppercase tracking-wider text-[#8b8b9a] mb-1">
+                  Maximum Points
                 </label>
                 <input
                   id="total-classwork"
@@ -966,18 +967,17 @@ export function EntryForm({ students }: EntryFormProps) {
                     }));
                     setHasUnsavedChanges(true);
                   }}
-                  className="w-full px-3 py-2 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-1.5 font-mono text-sm text-[#f0f0f2] bg-[#111115] border border-[#2a2a35] rounded-sm focus:outline-none focus:border-amber-500/60"
                 />
-                <p className="mt-1 text-xs text-gray-500">Set total for this assessment.</p>
               </div>
             ) : (
-              <p className="text-xs text-gray-500 italic">Category disabled for Week {week}</p>
+              <p className="font-mono text-xs text-[#55555f] italic">Disabled for Week {week}</p>
             )}
           </div>
 
           {/* Homework Toggle & Total */}
-          <div className="p-3.5 border-2 border-gray-300 rounded-lg bg-gray-50/70">
-            <label className="flex items-center gap-2 cursor-pointer font-bold text-sm text-gray-900 mb-2">
+          <div className="p-4 border border-[#1f1f27] bg-[#0c0c0e] rounded-sm">
+            <label className="flex items-center gap-2.5 cursor-pointer font-medium text-sm text-[#f0f0f2] mb-3">
               <input
                 type="checkbox"
                 checked={enabledCategories.homework}
@@ -986,16 +986,16 @@ export function EntryForm({ students }: EntryFormProps) {
                   setEnabledCategories((prev) => ({ ...prev, homework: e.target.checked }));
                   setHasUnsavedChanges(true);
                 }}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-400 cursor-pointer"
+                className="w-4 h-4 rounded-sm accent-amber-500 cursor-pointer"
               />
-              <span>Homework</span>
+              <span>Homework (20%)</span>
             </label>
             {selectedGrade === 'All' ? (
-              <p className="text-xs text-gray-500">—</p>
+              <p className="font-mono text-xs text-[#55555f]">—</p>
             ) : enabledCategories.homework ? (
               <div>
-                <label htmlFor="total-homework" className="block text-xs font-semibold text-gray-700 mb-1">
-                  Homework Total
+                <label htmlFor="total-homework" className="block font-mono text-[11px] uppercase tracking-wider text-[#8b8b9a] mb-1">
+                  Maximum Points
                 </label>
                 <input
                   id="total-homework"
@@ -1009,43 +1009,44 @@ export function EntryForm({ students }: EntryFormProps) {
                     }));
                     setHasUnsavedChanges(true);
                   }}
-                  className="w-full px-3 py-2 text-gray-900 font-medium bg-white border-2 border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-1.5 font-mono text-sm text-[#f0f0f2] bg-[#111115] border border-[#2a2a35] rounded-sm focus:outline-none focus:border-amber-500/60"
                 />
-                <p className="mt-1 text-xs text-gray-500">Set total for this assessment.</p>
               </div>
             ) : (
-              <p className="text-xs text-gray-500 italic">Category disabled for Week {week}</p>
+              <p className="font-mono text-xs text-[#55555f] italic">Disabled for Week {week}</p>
             )}
           </div>
         </div>
+
         {selectedGrade === 'All' && (
-          <p className="mt-4 text-sm font-medium text-amber-800">
-            Select a specific grade to configure and enter scores.
+          <p className="mt-4 font-mono text-xs text-amber-400">
+            * Select a specific grade cohort above to configure assessment totals and enter scores.
           </p>
         )}
       </div>
 
       {/* Status Messages */}
       {success && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800 font-medium">✓ Scores and week configuration saved successfully</p>
+        <div className="border border-emerald-500/30 bg-emerald-950/20 rounded-sm p-3.5 font-mono text-xs text-emerald-300 flex items-center gap-2">
+          <span>✓</span>
+          <span>Scores and week configuration saved successfully.</span>
         </div>
       )}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">{error}</p>
+        <div className="border border-rose-500/30 bg-rose-950/20 rounded-sm p-3.5 font-mono text-xs text-rose-300">
+          {error}
         </div>
       )}
 
       {loadingExisting && (
-        <div className="mb-4 text-sm text-gray-500">
-          Loading configuration and scores for Week {week}...
+        <div className="font-mono text-xs text-[#8b8b9a]">
+          Loading configuration and score data for Week {week}...
         </div>
       )}
 
       {/* Main Table */}
       {filteredStudents.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500 mb-6">
+        <div className="border border-[#1f1f27] bg-[#111115] rounded p-8 text-center font-mono text-sm text-[#55555f]">
           No students found for {selectedGrade === 'All' ? 'the selected filter' : `Grade ${selectedGrade}`}.
         </div>
       ) : selectedGrade === 'All' ? (
@@ -1055,19 +1056,19 @@ export function EntryForm({ students }: EntryFormProps) {
             if (gradeStudents.length === 0) return null;
 
             return (
-              <div key={grade} className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="bg-blue-900 px-6 py-3 border-b border-blue-950 flex items-center justify-between">
-                  <h3 className="text-base font-bold text-white tracking-wide">
+              <div key={grade} className="border border-[#1f1f27] bg-[#111115] rounded overflow-hidden">
+                <div className="bg-[#18181e] px-4 py-2.5 border-b border-[#1f1f27] flex items-center justify-between">
+                  <h3 className="font-mono text-xs font-semibold text-[#f0f0f2] uppercase tracking-wider">
                     Grade {grade}
                   </h3>
-                  <span className="text-xs font-semibold text-blue-200 uppercase tracking-wider">
-                    {gradeStudents.length} {gradeStudents.length === 1 ? 'Student' : 'Students'}
+                  <span className="font-mono text-xs text-[#55555f]">
+                    {gradeStudents.length} {gradeStudents.length === 1 ? 'student' : 'students'}
                   </span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     {renderTableHead()}
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-[#1f1f27]">
                       {gradeStudents.map(renderStudentRow)}
                     </tbody>
                   </table>
@@ -1077,19 +1078,19 @@ export function EntryForm({ students }: EntryFormProps) {
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="bg-blue-900 px-6 py-3 border-b border-blue-950 flex items-center justify-between">
-            <h3 className="text-base font-bold text-white tracking-wide">
-              Grade {selectedGrade}
+        <div className="border border-[#1f1f27] bg-[#111115] rounded overflow-hidden">
+          <div className="bg-[#18181e] px-4 py-2.5 border-b border-[#1f1f27] flex items-center justify-between">
+            <h3 className="font-mono text-xs font-semibold text-[#f0f0f2] uppercase tracking-wider">
+              Grade {selectedGrade} Roster
             </h3>
-            <span className="text-xs font-semibold text-blue-200 uppercase tracking-wider">
-              {filteredStudents.length} {filteredStudents.length === 1 ? 'Student' : 'Students'}
+            <span className="font-mono text-xs text-[#55555f]">
+              {filteredStudents.length} {filteredStudents.length === 1 ? 'student' : 'students'}
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               {renderTableHead()}
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-[#1f1f27]">
                 {filteredStudents.map(renderStudentRow)}
               </tbody>
             </table>
@@ -1098,19 +1099,27 @@ export function EntryForm({ students }: EntryFormProps) {
       )}
 
       {/* Submit Button */}
-      <div className="mt-6">
+      <div className="pt-2 flex items-center gap-4">
         <button
           onClick={validateAndSubmit}
           disabled={loading || loadingExisting || selectedGrade === 'All'}
           title={selectedGrade === 'All' ? 'Select a specific grade to save scores.' : undefined}
-          className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 cursor-pointer shadow-sm"
+          className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-semibold text-sm rounded-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
         >
-          {loading ? 'Saving...' : 'Save Scores'}
+          {loading ? 'Saving Changes...' : 'Save All Scores'}
         </button>
+        {hasUnsavedChanges && (
+          <span className="font-mono text-xs text-amber-400 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            Unsaved changes
+          </span>
+        )}
         {selectedGrade === 'All' && (
-          <p className="mt-2 text-sm text-gray-600">Select a specific grade to save scores.</p>
+          <p className="font-mono text-xs text-[#55555f]">Select a specific grade above to enable saving.</p>
         )}
       </div>
     </div>
   );
 }
+
+

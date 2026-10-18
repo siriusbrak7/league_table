@@ -6,52 +6,36 @@ import DashboardTables from '@/components/dashboard/dashboard-tables';
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  // Fetch students
   const { data: students, error: studentsError } = await supabase
-    .from('students')
-    .select('*')
-    .order('grade')
-    .order('name');
+    .from('students').select('*').order('grade').order('name');
 
-  // Fetch academic scores
   const { data: academicScores, error: academicError } = await supabase
-    .from('academic_scores')
-    .select('*')
-    .eq('term', CURRENT_TERM)
-    .eq('year', CURRENT_YEAR);
+    .from('academic_scores').select('*')
+    .eq('term', CURRENT_TERM).eq('year', CURRENT_YEAR);
 
-  // Fetch behavior scores
   const { data: behaviorScores, error: behaviorError } = await supabase
-    .from('behavior_scores')
-    .select('*')
-    .eq('term', CURRENT_TERM)
-    .eq('year', CURRENT_YEAR);
+    .from('behavior_scores').select('*')
+    .eq('term', CURRENT_TERM).eq('year', CURRENT_YEAR);
 
   const { data: weekConfigs, error: weekConfigError } = await supabase
-    .from('week_config')
-    .select('*')
-    .eq('term', CURRENT_TERM)
-    .eq('year', CURRENT_YEAR);
+    .from('week_config').select('*')
+    .eq('term', CURRENT_TERM).eq('year', CURRENT_YEAR);
 
-  // Surface any fetch errors visibly instead of rendering a blank table
   const fetchError = studentsError ?? academicError ?? behaviorError ?? weekConfigError;
   if (fetchError) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 mt-6">
-        <h2 className="text-lg font-semibold text-red-800 mb-2">Failed to load data</h2>
-        <p className="text-red-700 text-sm">{fetchError.message}</p>
-        <p className="text-red-600 text-xs mt-2">
-          Check your Supabase connection and try refreshing the page.
-        </p>
+      <div className="alert-error" style={{ marginTop: 24 }}>
+        <strong>Failed to load data</strong>
+        <br />
+        <span style={{ opacity: 0.8, fontSize: '0.75rem' }}>{fetchError.message}</span>
       </div>
     );
   }
 
-  // Process data per grade level using the shared utility
   const gradeSections = GRADES
     .map((grade) => {
       const gradeStudents = (students ?? []).filter(
-        (student) => String(student.grade) === grade
+        (s) => String(s.grade) === grade
       );
       if (gradeStudents.length === 0) return null;
       return processGradeData(
@@ -62,17 +46,47 @@ export default async function DashboardPage() {
         weekConfigs ?? []
       );
     })
-    .filter((section): section is NonNullable<typeof section> => section !== null);
+    .filter((s): s is NonNullable<typeof s> => s !== null);
+
+  const totalStudents   = students?.length ?? 0;
+  const activeCohorts   = gradeSections.length;
+  const recordedWeeks   = new Set(
+    (academicScores ?? []).map((s) => s.week).concat((behaviorScores ?? []).map((s) => s.week))
+  ).size;
 
   return (
-    <div className="space-y-10">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {CURRENT_TERM} {CURRENT_YEAR} - Live Standings
-        </h2>
-        <p className="text-gray-600">
-          Weekly progress: Week 1-12 (update as you enter scores)
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+      {/* Page header */}
+      <div className="page-header">
+        <p className="eyebrow" style={{ marginBottom: 6 }}>{CURRENT_TERM} · {CURRENT_YEAR}</p>
+        <h1 className="page-title">League Standings</h1>
+        <p className="page-subtitle">
+          Academic mastery and conduct rankings across all grade cohorts.
         </p>
+      </div>
+
+      {/* KPI strip */}
+      <div className="stat-strip" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+        <div className="stat-cell">
+          <div className="stat-label">Students</div>
+          <div className="stat-value" style={{ color: 'var(--text-1)', fontFamily: 'var(--font-geist-mono)' }}>
+            {totalStudents}
+          </div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">Cohorts</div>
+          <div className="stat-value" style={{ color: 'var(--gold)', fontFamily: 'var(--font-geist-mono)' }}>
+            {activeCohorts}
+          </div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-label">Weeks logged</div>
+          <div className="stat-value" style={{ color: 'var(--text-1)', fontFamily: 'var(--font-geist-mono)' }}>
+            {recordedWeeks}
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-3)', fontWeight: 600 }}>/12</span>
+          </div>
+        </div>
       </div>
 
       <DashboardTables gradeSections={gradeSections} />
