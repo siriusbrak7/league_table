@@ -30,9 +30,9 @@ export default function DashboardTables({ gradeSections }: DashboardTablesProps)
     if (!hasData || rank === null) {
       return <span style={{ color: 'var(--text-3)', fontFamily: 'var(--font-geist-mono)', fontSize: '0.8rem' }}>—</span>;
     }
-    if (rank === 1) return <span className="rank-gold"   style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 700 }}>🥇 {rank}</span>;
-    if (rank === 2) return <span className="rank-silver" style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 700 }}>🥈 {rank}</span>;
-    if (rank === 3) return <span className="rank-bronze" style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 700 }}>🥉 {rank}</span>;
+    if (rank === 1) return <span className="rank-gold"   style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 800 }}>🥇 {rank}</span>;
+    if (rank === 2) return <span className="rank-silver" style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 800 }}>🥈 {rank}</span>;
+    if (rank === 3) return <span className="rank-bronze" style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 800 }}>🥉 {rank}</span>;
     return <span style={{ color: 'var(--text-2)', fontFamily: 'var(--font-geist-mono)', fontSize: '0.82rem', fontWeight: 600 }}>{rank}</span>;
   };
 

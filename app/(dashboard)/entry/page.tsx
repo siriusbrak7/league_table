@@ -47,10 +47,10 @@ export default function EntryPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="border border-red-500/30 bg-red-500/10 rounded-xl p-6 max-w-md text-center">
-          <AlertCircle className="w-6 h-6 text-red-400 mx-auto mb-2" />
-          <p className="text-red-300 font-semibold text-sm">Failed to load data</p>
-          <p className="text-red-400 text-xs mt-1">{error}</p>
+        <div className="alert-error max-w-md text-center p-6 flex flex-col items-center">
+          <AlertCircle className="w-6 h-6 text-[var(--danger)] mb-2" />
+          <p className="font-semibold text-sm">Failed to load data</p>
+          <p className="text-xs mt-1">{error}</p>
         </div>
       </div>
     );

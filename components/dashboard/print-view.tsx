@@ -23,56 +23,56 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
       : gradeSections.filter((section) => `Grade ${section.grade}` === selectedGrade);
 
   return (
-    <div className="min-h-screen bg-[#0c0c0e] text-[#f0f0f2] print:bg-white print:text-black">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-1)] print:bg-white print:text-black py-4 print:py-0">
       {/* Header - Hidden on Print */}
-      <div className="print:hidden border border-[#1f1f27] bg-[#111115] rounded p-6 mb-8">
+      <div className="print:hidden border border-[var(--border)] bg-[var(--surface)] rounded-xl p-6 mb-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <div className="font-mono text-xs text-[#8b8b9a] uppercase tracking-wider mb-2">
+            <div className="font-mono text-xs text-[var(--gold)] uppercase tracking-wider mb-2 font-bold">
               Export & Printing Center
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#f0f0f2] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-1)] tracking-tight">
               Printable League Dossiers
             </h1>
-            <p className="text-[#8b8b9a] text-xs sm:text-sm mt-1">
+            <p className="text-[var(--text-2)] text-xs sm:text-sm mt-1">
               Generate formatted PDF reports or physical printouts for classroom bulletin boards.
             </p>
           </div>
 
           <button
             onClick={handlePrint}
-            className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-semibold text-xs font-mono uppercase tracking-wider rounded-sm transition-colors cursor-pointer flex items-center justify-center gap-2 shrink-0"
+            className="btn-primary py-2.5 px-5 text-xs font-mono uppercase tracking-wider rounded-lg shadow-sm flex items-center justify-center gap-2 shrink-0"
           >
             <span>Print / Save as PDF</span>
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-5 pt-4 border-t border-[#1f1f27]">
+        <div className="flex flex-wrap items-center gap-5 pt-4 border-t border-[var(--border)]">
           <div className="flex items-center gap-2">
-            <label htmlFor="print-grade-select" className="font-mono text-[11px] uppercase tracking-wider text-[#8b8b9a]">
+            <label htmlFor="print-grade-select" className="font-mono text-[11px] uppercase tracking-wider text-[var(--text-2)] font-semibold">
               Grade Cohort:
             </label>
             <select
               id="print-grade-select"
               value={selectedGrade}
               onChange={(e) => setSelectedGrade(e.target.value)}
-              className="px-3 py-1.5 font-mono text-xs text-[#f0f0f2] bg-[#0c0c0e] border border-[#2a2a35] rounded-sm focus:outline-none focus:border-amber-500/60 cursor-pointer"
+              className="form-input text-xs font-mono py-1.5 px-3 w-auto cursor-pointer"
             >
-              <option value="All Grades" className="bg-[#0c0c0e] text-[#f0f0f2]">All Grades</option>
+              <option value="All Grades" className="bg-[var(--surface)] text-[var(--text-1)]">All Grades</option>
               {GRADES.map((g) => (
-                <option key={g} value={`Grade ${g}`} className="bg-[#0c0c0e] text-[#f0f0f2]">
+                <option key={g} value={`Grade ${g}`} className="bg-[var(--surface)] text-[var(--text-1)]">
                   Grade {g}
                 </option>
               ))}
             </select>
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer font-mono text-xs text-[#8b8b9a]">
+          <label className="flex items-center gap-2 cursor-pointer font-mono text-xs text-[var(--text-2)] font-medium">
             <input
               type="checkbox"
               checked={showBehavior}
               onChange={(e) => setShowBehavior(e.target.checked)}
-              className="w-4 h-4 rounded-sm accent-amber-500 cursor-pointer"
+              className="w-4 h-4 rounded-sm accent-[var(--gold)] cursor-pointer"
             />
             <span>Include Conduct & Behavior Tables</span>
           </label>
@@ -82,7 +82,7 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
       {/* Main Content */}
       <div className="space-y-8 print:space-y-8">
         {filteredSections.length === 0 ? (
-          <div className="border border-[#1f1f27] bg-[#111115] rounded p-12 text-center font-mono text-sm text-[#55555f] print:text-black">
+          <div className="border border-[var(--border)] bg-[var(--surface)] rounded-xl p-12 text-center font-mono text-sm text-[var(--text-3)] print:text-black print:border-black print:bg-white">
             No students found for the selected grade filter.
           </div>
         ) : (
@@ -90,10 +90,10 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
             return (
               <div
                 key={section.grade}
-                className="border border-[#1f1f27] bg-[#111115] rounded p-6 break-inside-avoid print:break-after-page mb-8 print:p-0 print:border-none print:shadow-none print:bg-white"
+                className="border border-[var(--border)] bg-[var(--surface)] rounded-xl p-6 break-inside-avoid print:break-after-page mb-8 print:p-0 print:border-none print:shadow-none print:bg-white print:mb-0"
               >
-                <div className="border-b border-[#1f1f27] pb-3 mb-6 print:border-b-2 print:border-black">
-                  <h2 className="text-xl font-black text-[#f0f0f2] tracking-wide uppercase print:text-black">
+                <div className="border-b border-[var(--border)] pb-3 mb-6 print:border-b-2 print:border-black">
+                  <h2 className="text-xl font-black text-[var(--text-1)] tracking-wide uppercase print:text-black">
                     Grade {section.grade} League Table
                   </h2>
                 </div>
@@ -101,19 +101,19 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
                 <div className={`grid grid-cols-1 ${showBehavior ? 'lg:grid-cols-2' : ''} gap-6`}>
                   {/* Academic Table */}
                   <div>
-                    <h3 className="font-mono text-xs font-semibold text-[#8b8b9a] uppercase tracking-wider mb-3 flex items-center gap-2 print:text-black print:text-base">
+                    <h3 className="font-mono text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-3 flex items-center gap-2 print:text-black print:text-base">
                       Academic Mastery
                     </h3>
-                    <div className="overflow-x-auto border border-[#1f1f27] bg-[#0c0c0e] rounded-sm print:border-gray-400 print:rounded-none">
+                    <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)] rounded-lg print:border print:border-black print:rounded-none">
                       <table className="w-full border-collapse text-sm print:text-black">
                         <thead>
-                          <tr className="bg-[#0c0c0e] border-b border-[#1f1f27] font-mono text-[11px] font-semibold text-[#8b8b9a] uppercase tracking-wider print:bg-gray-100 print:text-black print:border-gray-400">
-                            <th className="px-4 py-2.5 text-left w-20">Rank</th>
-                            <th className="px-4 py-2.5 text-left">Student</th>
-                            <th className="px-4 py-2.5 text-right w-32">Mastery %</th>
+                          <tr className="bg-[var(--surface-2)] border-b border-[var(--border)] font-mono text-[11px] font-bold text-[var(--text-1)] uppercase tracking-wider print:bg-gray-100 print:text-black print:border-b print:border-black">
+                            <th className="px-4 py-2.5 text-left w-20 print:border print:border-black">Rank</th>
+                            <th className="px-4 py-2.5 text-left print:border print:border-black">Student</th>
+                            <th className="px-4 py-2.5 text-right w-32 print:border print:border-black">Mastery %</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#1f1f27] print:divide-gray-300">
+                        <tbody className="divide-y divide-[var(--border)] print:divide-black">
                           {section.rankedAcademic.map((item) => {
                             const { background, text } = getPercentageColors(
                               item.weightedPercentage,
@@ -121,16 +121,16 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
                             );
 
                             return (
-                              <tr key={item.student.id} className="hover:bg-[#18181e] transition-colors print:hover:bg-transparent">
-                                <td className="px-4 py-2 font-mono text-xs font-semibold text-[#8b8b9a] print:text-black">
+                              <tr key={item.student.id} className="hover:bg-[var(--surface-2)] transition-colors print:hover:bg-transparent">
+                                <td className="px-4 py-2 font-mono text-xs font-bold text-[var(--text-2)] print:text-black print:border print:border-black">
                                   {item.hasData && item.rank !== null ? `#${item.rank}` : '—'}
                                 </td>
-                                <td className="px-4 py-2 text-sm font-medium text-[#f0f0f2] print:text-black">
+                                <td className="px-4 py-2 text-sm font-medium text-[var(--text-1)] print:text-black print:border print:border-black">
                                   {item.student.name}
                                 </td>
-                                <td className="px-4 py-2 text-right">
+                                <td className="px-4 py-2 text-right print:border print:border-black">
                                   <span
-                                    className="px-2 py-0.5 rounded-sm font-mono text-xs font-bold inline-block print:border print:border-gray-300"
+                                    className="px-2 py-0.5 rounded-md font-mono text-xs font-bold inline-block print:border print:border-black"
                                     style={{ backgroundColor: background, color: text }}
                                   >
                                     {item.hasData ? `${item.weightedPercentage.toFixed(1)}%` : '—'}
@@ -147,19 +147,19 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
                   {/* Behavior Table */}
                   {showBehavior && (
                     <div>
-                      <h3 className="font-mono text-xs font-semibold text-[#8b8b9a] uppercase tracking-wider mb-3 flex items-center gap-2 print:text-black print:text-base">
+                      <h3 className="font-mono text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-3 flex items-center gap-2 print:text-black print:text-base">
                         Behavior Performance
                       </h3>
-                      <div className="overflow-x-auto border border-[#1f1f27] bg-[#0c0c0e] rounded-sm print:border-gray-400 print:rounded-none">
+                      <div className="overflow-x-auto border border-[var(--border)] bg-[var(--surface)] rounded-lg print:border print:border-black print:rounded-none">
                         <table className="w-full border-collapse text-sm print:text-black">
                           <thead>
-                            <tr className="bg-[#0c0c0e] border-b border-[#1f1f27] font-mono text-[11px] font-semibold text-[#8b8b9a] uppercase tracking-wider print:bg-gray-100 print:text-black print:border-gray-400">
-                              <th className="px-4 py-2.5 text-left w-20">Rank</th>
-                              <th className="px-4 py-2.5 text-left">Student</th>
-                              <th className="px-4 py-2.5 text-right w-32">Conduct %</th>
+                            <tr className="bg-[var(--surface-2)] border-b border-[var(--border)] font-mono text-[11px] font-bold text-[var(--text-1)] uppercase tracking-wider print:bg-gray-100 print:text-black print:border-b print:border-black">
+                              <th className="px-4 py-2.5 text-left w-20 print:border print:border-black">Rank</th>
+                              <th className="px-4 py-2.5 text-left print:border print:border-black">Student</th>
+                              <th className="px-4 py-2.5 text-right w-32 print:border print:border-black">Conduct %</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#1f1f27] print:divide-gray-300">
+                          <tbody className="divide-y divide-[var(--border)] print:divide-black">
                             {section.rankedBehavior.map((item) => {
                               const { background, text } = getPercentageColors(
                                 item.average,
@@ -167,16 +167,16 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
                               );
 
                               return (
-                                <tr key={item.student.id} className="hover:bg-[#18181e] transition-colors print:hover:bg-transparent">
-                                  <td className="px-4 py-2 font-mono text-xs font-semibold text-[#8b8b9a] print:text-black">
+                                <tr key={item.student.id} className="hover:bg-[var(--surface-2)] transition-colors print:hover:bg-transparent">
+                                  <td className="px-4 py-2 font-mono text-xs font-bold text-[var(--text-2)] print:text-black print:border print:border-black">
                                     {item.hasData && item.rank !== null ? `#${item.rank}` : '—'}
                                   </td>
-                                  <td className="px-4 py-2 text-sm font-medium text-[#f0f0f2] print:text-black">
+                                  <td className="px-4 py-2 text-sm font-medium text-[var(--text-1)] print:text-black print:border print:border-black">
                                     {item.student.name}
                                   </td>
-                                  <td className="px-4 py-2 text-right">
+                                  <td className="px-4 py-2 text-right print:border print:border-black">
                                     <span
-                                      className="px-2 py-0.5 rounded-sm font-mono text-xs font-bold inline-block print:border print:border-gray-300"
+                                      className="px-2 py-0.5 rounded-md font-mono text-xs font-bold inline-block print:border print:border-black"
                                       style={{ backgroundColor: background, color: text }}
                                     >
                                       {item.hasData ? `${item.average.toFixed(1)}%` : '—'}
@@ -204,20 +204,19 @@ export default function PrintView({ gradeSections }: PrintViewProps) {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          body {
-            margin: 0;
-            padding: 0;
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
             background-color: #ffffff !important;
+            background: #ffffff !important;
             color: #000000 !important;
           }
-          .cosmic-bg {
-            background: #ffffff !important;
-          }
-          .print\\:hidden {
+          .nav-root, nav, header, button, .print\\:hidden {
             display: none !important;
           }
           table {
             page-break-inside: avoid;
+            border-collapse: collapse !important;
           }
         }
       `}</style>

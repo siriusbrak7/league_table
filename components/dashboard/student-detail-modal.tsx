@@ -198,7 +198,7 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 print:p-0 print:bg-transparent print:static print:inset-auto print:block"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 print:p-0 print:bg-transparent print:static print:inset-auto print:block"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl print:bg-white print:text-black print:max-w-none print:w-full print:max-h-none print:shadow-none print:rounded-none print:border-none">
@@ -242,7 +242,7 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
               {/* Top Summary Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-3.5 print:bg-white print:border-gray-300">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-3)]">Academic Total</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-[var(--text-2)]">Academic Total</div>
                   <div className="mt-2">
                     <span
                       className="font-mono text-base font-black px-2.5 py-1 rounded-md inline-block"
@@ -253,13 +253,13 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
                   </div>
                 </div>
                 <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-3.5 print:bg-white print:border-gray-300">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-3)]">Academic Rank</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-[var(--text-2)]">Academic Rank</div>
                   <div className="text-2xl font-black font-mono text-[var(--gold)] mt-1.5 print:text-black">
                     {hasAcademicData && academicRank !== null ? `#${academicRank}` : '—'}
                   </div>
                 </div>
                 <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-3.5 print:bg-white print:border-gray-300">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-3)]">Conduct Total</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-[var(--text-2)]">Conduct Total</div>
                   <div className="mt-2">
                     <span
                       className="font-mono text-base font-black px-2.5 py-1 rounded-md inline-block"
@@ -270,7 +270,7 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
                   </div>
                 </div>
                 <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-3.5 print:bg-white print:border-gray-300">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-3)]">Conduct Rank</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-[var(--text-2)]">Conduct Rank</div>
                   <div className="text-2xl font-black font-mono text-[var(--text-2)] mt-1.5 print:text-black">
                     {hasBehaviorData && behaviorRank !== null ? `#${behaviorRank}` : '—'}
                   </div>
@@ -279,21 +279,21 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
 
               {/* Weekly Scores Table */}
               <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--surface-2)]/40 print:border-gray-400">
-                <table className="min-w-full divide-y divide-[var(--border)] text-sm print:divide-gray-300">
+                <table className="min-w-full divide-y divide-[var(--border-2)] text-sm print:divide-gray-300">
                   <thead className="bg-[var(--surface-2)] print:bg-gray-100">
                     <tr>
-                      <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Week</th>
-                      <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Test (50%)</th>
-                      <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Classwork (30%)</th>
-                      <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">Homework (20%)</th>
-                      <th className="border-l-2 border-[var(--border-2)] px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:border-gray-400 print:text-black">Conduct</th>
-                      <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] print:text-black">
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)] print:text-black">Week</th>
+                      <th className="px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)] print:text-black">Test (50%)</th>
+                      <th className="px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)] print:text-black">Classwork (30%)</th>
+                      <th className="px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)] print:text-black">Homework (20%)</th>
+                      <th className="border-l-2 border-[var(--border-2)] px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)] print:border-gray-400 print:text-black">Conduct</th>
+                      <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)] print:text-black">
                         <span className="block">Weekly %</span>
-                        <span className="block text-[9px] font-normal normal-case tracking-normal">Academic only</span>
+                        <span className="block text-[9px] font-normal normal-case tracking-normal text-[var(--text-2)]">Academic only</span>
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--border)] print:divide-gray-200">
+                  <tbody className="divide-y divide-[var(--border-2)] print:divide-gray-200">
                     {weeklyRows.map((row) => {
                       const hasWeeklyData = row.weeklyPercentage !== null;
                       const { background, text } = getPercentageColors(row.weeklyPercentage ?? 0, hasWeeklyData);
@@ -311,34 +311,52 @@ export default function StudentDetailModal({ student, onClose }: StudentDetailMo
                             : 'No scores';
                       return (
                         <tr key={row.week} className="hover:bg-[var(--surface-2)] transition-colors print:odd:bg-white print:even:bg-gray-50">
-                          <td className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-2)] print:text-black">Week {row.week}</td>
-                          <td className="px-4 py-3 text-center font-mono text-xs text-[var(--text-1)] print:text-black">
-                            {row.test ? `${row.test.score}/${row.test.total}` : '—'}
+                          <td className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-1)] print:text-black">Week {row.week}</td>
+                          <td className="px-4 py-3 text-center font-mono text-xs print:text-black">
+                            {row.test ? (
+                              <span className="text-[var(--text-1)]">{row.test.score}/{row.test.total}</span>
+                            ) : (
+                              <span className="text-[var(--text-2)]">—</span>
+                            )}
                           </td>
-                          <td className="px-4 py-3 text-center font-mono text-xs text-[var(--text-1)] print:text-black">
-                            {row.classwork ? `${row.classwork.score}/${row.classwork.total}` : '—'}
+                          <td className="px-4 py-3 text-center font-mono text-xs print:text-black">
+                            {row.classwork ? (
+                              <span className="text-[var(--text-1)]">{row.classwork.score}/{row.classwork.total}</span>
+                            ) : (
+                              <span className="text-[var(--text-2)]">—</span>
+                            )}
                           </td>
-                          <td className="px-4 py-3 text-center font-mono text-xs text-[var(--text-1)] print:text-black">
-                            {row.homework ? `${row.homework.score}/${row.homework.total}` : '—'}
+                          <td className="px-4 py-3 text-center font-mono text-xs print:text-black">
+                            {row.homework ? (
+                              <span className="text-[var(--text-1)]">{row.homework.score}/{row.homework.total}</span>
+                            ) : (
+                              <span className="text-[var(--text-2)]">—</span>
+                            )}
                           </td>
-                          <td className="border-l-2 border-[var(--border-2)] px-4 py-3 text-center font-mono text-xs text-[var(--text-1)] print:border-gray-400 print:text-black">
-                            {row.behavior !== undefined ? row.behavior : '—'}
+                          <td className="border-l-2 border-[var(--border-2)] px-4 py-3 text-center font-mono text-xs print:border-gray-400 print:text-black">
+                            {row.behavior !== undefined ? (
+                              <span className="text-[var(--text-1)]">{row.behavior}</span>
+                            ) : (
+                              <span className="text-[var(--text-2)]">—</span>
+                            )}
                           </td>
-                          <td className="px-4 py-2 text-right">
-                            <div className="flex flex-col items-end gap-1" title={`Weekly academic percentage: ${weeklyDescription}`}>
+                          <td className="px-4 py-2.5 text-right font-mono text-xs">
+                            {hasWeeklyData ? (
                               <span
-                                className="inline-flex min-w-[58px] justify-center rounded-md px-2 py-1 font-mono text-xs font-bold"
+                                className="inline-flex min-w-[58px] justify-center rounded-md px-2 py-1 font-bold"
                                 style={{
-                                  backgroundColor: hasWeeklyData ? background : 'var(--surface-3)',
-                                  color: hasWeeklyData ? text : 'var(--text-2)',
+                                  backgroundColor: background,
+                                  color: text,
                                 }}
+                                title={`Calculated using ${weeklyDescription}`}
                               >
-                                {hasWeeklyData ? `${row.weeklyPercentage!.toFixed(1)}%` : '—'}
+                                {`${row.weeklyPercentage!.toFixed(1)}%`}
                               </span>
-                              <span className="text-[9px] leading-tight text-[var(--text-3)]">
-                                {`(${weeklyDescription})`}
+                            ) : (
+                              <span className="text-[var(--text-2)]" title="No scores">
+                                —
                               </span>
-                            </div>
+                            )}
                           </td>
                         </tr>
                       );
